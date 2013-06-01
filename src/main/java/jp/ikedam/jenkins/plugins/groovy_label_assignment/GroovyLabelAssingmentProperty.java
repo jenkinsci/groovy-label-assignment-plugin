@@ -24,6 +24,7 @@
 package jp.ikedam.jenkins.plugins.groovy_label_assignment;
 
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -37,9 +38,16 @@ import antlr.ANTLRException;
 
 import groovy.lang.Binding;
 import groovy.lang.GroovyShell;
+import hudson.EnvVars;
 import hudson.Extension;
+import hudson.Util;
+import hudson.matrix.Axis;
+import hudson.matrix.AxisList;
+import hudson.matrix.MatrixConfiguration;
+import hudson.matrix.MatrixProject;
 import hudson.model.AbstractProject;
 import hudson.model.Action;
+import hudson.model.EnvironmentContributingAction;
 import hudson.model.JobProperty;
 import hudson.model.JobPropertyDescriptor;
 import hudson.model.Label;
@@ -51,7 +59,6 @@ import hudson.model.labels.LabelExpression;
  */
 public class GroovyLabelAssingmentProperty extends JobProperty<AbstractProject<?, ?>>
 {
-    
     /**
      * Property name used for job configuration page.
      */
@@ -137,14 +144,62 @@ public class GroovyLabelAssingmentProperty extends JobProperty<AbstractProject<?
     
     /**
      * Create variables used in a groovy script.
+     * 
      * @param project
      * @param actions
      * @return
      */
     protected Binding createBinding(AbstractProject<?, ?> project, List<Action> actions)
     {
-        // TODO
-        return new Binding();
+        EnvVars env = new EnvVars();
+        
+        // add environments
+        // ParametersAction is also processed here.
+        // some actions may fail for build is null
+        for (EnvironmentContributingAction a : Util.filter(actions,EnvironmentContributingAction.class))
+        {
+            try
+            {
+                a.buildEnvVars(null,env);
+            }
+            catch(NullPointerException e)
+            {
+                // nothing to do.
+                LOGGER.log(Level.FINE, String.format("%s: NPE occurred in %s(%s): ignore", project.getName(), a.getDisplayName(), a.getClass().getName()), e);
+            }
+            catch(Exception e)
+            {
+                LOGGER.log(Level.WARNING, String.format("%s: Failed to initialize environment %s(%s): skip", project.getName(), a.getDisplayName(), a.getClass().getName()), e);
+            }
+        }
+        
+        EnvVars.resolve(env);
+        
+        //// As in MatrixRun#getBuildVariables
+        if(project instanceof MatrixConfiguration)
+        {
+            MatrixConfiguration child = (MatrixConfiguration)project;
+            MatrixProject parent = child.getParent();
+            
+            // pick up user axes
+            AxisList axes = parent.getAxes();
+            for(Map.Entry<String,String> e : child.getCombination().entrySet())
+            {
+                Axis a = axes.find(e.getKey());
+                if (a != null)
+                {
+                    a.addBuildVariable(e.getValue(), env);
+                }
+                else
+                {
+                    env.put(e.getKey(), e.getValue());
+                }
+            }
+        }
+        
+        LOGGER.fine(String.format("%s: set environments %s", project.getName(), env.toString()));
+        
+        return new Binding(env);
     }
     
     /**
