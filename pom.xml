@@ -7,7 +7,7 @@
   </parent>
 
   <groupId>jp.ikedam.jenkins.plugins</groupId>
-  <artifactId>conditional-label</artifactId>
+  <artifactId>groovy-label-assignment</artifactId>
   <version>0.1.0-SNAPSHOT</version>
   <packaging>hpi</packaging>
 

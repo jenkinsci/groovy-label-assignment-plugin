@@ -1,4 +1,4 @@
-conditional-label
-=================
+Groovy Label Assignment plugin
+==============================
 
-Jenkins plugin to set label dynamically with scripts 
+Jenkins plugin to set label dynamically with groovy scripts

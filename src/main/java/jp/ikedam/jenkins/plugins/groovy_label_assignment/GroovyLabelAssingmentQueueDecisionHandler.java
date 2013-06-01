@@ -21,7 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package jp.ikedam.jenkins.plugins.conditional_label;
+package jp.ikedam.jenkins.plugins.groovy_label_assignment;
 
 import java.util.List;
 import java.util.logging.Logger;
@@ -34,22 +34,22 @@ import hudson.model.Queue.QueueDecisionHandler;
 import hudson.model.Queue.Task;
 
 /**
- * Handler that handles ConditionalLabelProperty.
+ * Handler that handles GroovyLabelAssingmentProperty.
  * 
  * This is called before a new build is enqueued.
- * Decide label of nodes where a job with ConditionalLabelProperty will be executed.
+ * Decide label of nodes where a job with GroovyLabelAssingmentProperty will be executed.
  */
 @Extension
-public class ConditionalLabelQueueDecisionHandler extends QueueDecisionHandler
+public class GroovyLabelAssingmentQueueDecisionHandler extends QueueDecisionHandler
 {
-    //private static final Logger LOGGER = Logger.getLogger(ConditionalLabelQueueDecisionHandler.class.getName());
+    //private static final Logger LOGGER = Logger.getLogger(GroovyLabelAssingmentQueueDecisionHandler.class.getName());
     /**
-     * Handles ConditionalLabelProperty.
+     * Handles GroovyLabelAssingmentProperty.
      * 
      * Trigger CondtionalLabelProperty, which results 
      * adding LabelAssignmentAction to actions.
      * 
-     * @return true if ConditionalLabelPropety is not set or ConditionalLabelProperty succeeds.
+     * @return true if GroovyLabelAssingmentPropety is not set or GroovyLabelAssingmentProperty succeeds.
      * @see hudson.model.Queue.QueueDecisionHandler#shouldSchedule(hudson.model.Queue.Task, java.util.List)
      */
     @Override
@@ -58,11 +58,11 @@ public class ConditionalLabelQueueDecisionHandler extends QueueDecisionHandler
         if(p instanceof MatrixConfiguration)
         {
             // MatrixConfiguration is a build for each set of axes in MatrixProject.
-            // In this case, ConditionalLabelProperty is set not in MatrixConfiguration,
+            // In this case, GroovyLabelAssingmentProperty is set not in MatrixConfiguration,
             // but to its parent, MarixProject.
             MatrixConfiguration child = (MatrixConfiguration)p;
             AbstractProject<?,?> project = child.getParent();
-            ConditionalLabelProperty prop = project.getProperty(ConditionalLabelProperty.class);
+            GroovyLabelAssingmentProperty prop = project.getProperty(GroovyLabelAssingmentProperty.class);
             if(prop != null)
             {
                 return prop.assignLabel(child, actions);
@@ -71,14 +71,14 @@ public class ConditionalLabelQueueDecisionHandler extends QueueDecisionHandler
         else if(p instanceof AbstractProject<?,?>)
         {
             AbstractProject<?,?> project = (AbstractProject<?,?>)p;
-            ConditionalLabelProperty prop = project.getProperty(ConditionalLabelProperty.class);
+            GroovyLabelAssingmentProperty prop = project.getProperty(GroovyLabelAssingmentProperty.class);
             if(prop != null)
             {
                 return prop.assignLabel(project, actions);
             }
         }
         
-        // ConditionalLabelProperty is not set.
+        // GroovyLabelAssingmentProperty is not set.
         return true;
     }
 }

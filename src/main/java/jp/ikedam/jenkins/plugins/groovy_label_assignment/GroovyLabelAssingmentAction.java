@@ -21,16 +21,16 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package jp.ikedam.jenkins.plugins.conditional_label;
+package jp.ikedam.jenkins.plugins.groovy_label_assignment;
 
 import hudson.model.Label;
 import hudson.model.labels.LabelAssignmentAction;
 import hudson.model.queue.SubTask;
 
 /**
- * Holds the label name assigned by ConditionalLabelProperty.
+ * Holds the label name assigned by GroovyLabelAssingmentProperty.
  */
-public class ConditionalLabelAction implements LabelAssignmentAction
+public class GroovyLabelAssingmentAction implements LabelAssignmentAction
 {
     private Label label;
     
@@ -39,7 +39,7 @@ public class ConditionalLabelAction implements LabelAssignmentAction
      * 
      * @param label assigned label.
      */
-    public ConditionalLabelAction(Label label)
+    public GroovyLabelAssingmentAction(Label label)
     {
         this.label = label;
     }

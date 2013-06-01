@@ -21,7 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package jp.ikedam.jenkins.plugins.conditional_label;
+package jp.ikedam.jenkins.plugins.groovy_label_assignment;
 
 import java.util.List;
 import java.util.logging.Level;
@@ -47,17 +47,17 @@ import hudson.model.labels.LabelAssignmentAction;
 import hudson.model.labels.LabelExpression;
 
 /**
- * JobProperty that holds configuration for ConditionalLabel.
+ * JobProperty that holds configuration for GroovyLabelAssingment.
  */
-public class ConditionalLabelProperty extends JobProperty<AbstractProject<?, ?>>
+public class GroovyLabelAssingmentProperty extends JobProperty<AbstractProject<?, ?>>
 {
     
     /**
      * Property name used for job configuration page.
      */
-    static public final String PROPERTYNAME = "conditional_label";
+    static public final String PROPERTYNAME = "groovy_label_assignment";
     
-    static private final Logger LOGGER = Logger.getLogger(ConditionalLabelProperty.class.getName());
+    static private final Logger LOGGER = Logger.getLogger(GroovyLabelAssingmentProperty.class.getName());
     
     private String groovyScript;
     
@@ -75,7 +75,7 @@ public class ConditionalLabelProperty extends JobProperty<AbstractProject<?, ?>>
      * @param groovyScript
      */
     @DataBoundConstructor
-    public ConditionalLabelProperty(String groovyScript)
+    public GroovyLabelAssingmentProperty(String groovyScript)
     {
         this.groovyScript = groovyScript;
     }
@@ -127,7 +127,7 @@ public class ConditionalLabelProperty extends JobProperty<AbstractProject<?, ?>>
             return false;
         }
         
-        LabelAssignmentAction labelAction = new ConditionalLabelAction(label);
+        LabelAssignmentAction labelAction = new GroovyLabelAssingmentAction(label);
         actions.add(0, labelAction);
         
         LOGGER.info(String.format("%s: label is modified to %s", project.getName(), labelString));
@@ -160,7 +160,7 @@ public class ConditionalLabelProperty extends JobProperty<AbstractProject<?, ?>>
         @Override
         public String getDisplayName()
         {
-            return Messages.ConditionalLabelProperty_DisplayName();
+            return Messages.GroovyLabelAssingmentProperty_DisplayName();
         }
         
         /** 
@@ -187,8 +187,8 @@ public class ConditionalLabelProperty extends JobProperty<AbstractProject<?, ?>>
             }
             
             @SuppressWarnings("unchecked")
-            Class<? extends ConditionalLabelProperty> clazz
-                = (Class<? extends ConditionalLabelProperty>)getClass().getEnclosingClass();
+            Class<? extends GroovyLabelAssingmentProperty> clazz
+                = (Class<? extends GroovyLabelAssingmentProperty>)getClass().getEnclosingClass();
             
             return req.bindJSON(clazz, form);
         }
