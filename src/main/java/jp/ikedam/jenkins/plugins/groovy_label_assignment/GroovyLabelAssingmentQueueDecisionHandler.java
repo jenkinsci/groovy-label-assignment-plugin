@@ -24,7 +24,7 @@
 package jp.ikedam.jenkins.plugins.groovy_label_assignment;
 
 import java.util.List;
-import java.util.logging.Logger;
+//import java.util.logging.Logger;
 
 import hudson.Extension;
 import hudson.matrix.MatrixConfiguration;
