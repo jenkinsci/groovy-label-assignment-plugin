@@ -1,4 +1,4 @@
-package jp.ikedam.jenkins.plugins.conditionallabel;
+package jp.ikedam.jenkins.plugins.conditional_label;
 import hudson.Launcher;
 import hudson.Extension;
 import hudson.util.FormValidation;
