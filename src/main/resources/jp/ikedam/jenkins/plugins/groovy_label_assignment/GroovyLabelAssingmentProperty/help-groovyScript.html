@@ -1,0 +1,48 @@
+<div>
+<p>Return value from Groovy script is treated as Label Expression. It is treated as followings:</p>
+<ul>
+    <li>A non-string value will be converted to a string using toString()</li>
+    <li>When null or blank string is returned, node restriction does not take effect (or is not overwritten).</li>
+    <li>When exception occurred or Label Expression is not parsed correctly, builds are canceled.</li>
+</ul>
+<br>
+<p>Following variables are binded, but there may be cases that some type of parameters are not set, or set to wrong value.
+This is for a build is not started yet when this Groovy script is evaluated.</p>
+<ul>
+    <li>Parameters specified in "This build is parameterized"</li>
+    <li>Axes defined in a matrix project.</li>
+    <li>Other variables that plugins create.</li>
+</ul>
+<br>
+<p>Here is an example:</p>
+<code style="white-space: pre-wrap;">
+Example1-----------------------------------------------------------------------------
+// parameters defined in "This build is parameterized" are binded,
+// and you can use them just as variables.
+if(is_test == "true")
+{
+    // use nodes labeled "debug_node"
+    return "debug_node";
+}
+// returning blank value does not restrict nodes.
+// When restricted with other parameters or plugins, that configuration will be used.
+return null;
+
+Example2-----------------------------------------------------------------------------
+// Values defined with axe with a matrix project are also binded.
+// But that value is not defined in a root matrix build, 
+// so access with binding.getVariables().get(VARNAME) .
+// (accessing VARNAME directly results exceptions)
+switch(binding.getVariables().get("target"))
+{
+    case "Win32":
+    case "Win64":
+        // run on Windows.
+        return "Windows";
+    case "Linux32":
+    case "Linux64":
+        // run on Linux.
+        return "Linux";
+}
+</code>
+</div>
