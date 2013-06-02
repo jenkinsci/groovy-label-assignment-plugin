@@ -80,6 +80,18 @@ public class GroovyLabelAssingmentProperty extends JobProperty<AbstractProject<?
     }
     
     /**
+     * Set the Groovy script.
+     * 
+     * For testing purpose.
+     * 
+     * @param groovyScript the Groovy script to set
+     */
+    public void setGroovyScript(String groovyScript)
+    {
+        this.groovyScript = groovyScript;
+    }
+    
+    /**
      * Constructor from the form input.
      * 
      * @param groovyScript
