@@ -55,6 +55,7 @@ import hudson.model.labels.LabelExpression;
 import hudson.slaves.DumbSlave;
 import hudson.util.FormValidation;
 
+import org.apache.commons.lang.StringUtils;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -327,6 +328,66 @@ public class GroovyLabelAssignmentPropertyJenkinsTest
                     else if("axis2".equals(axisParam))
                     {
                         assertBuiltOn(slave2, child);
+                    }
+                    else
+                    {
+                        fail(String.format("unknown combination: %s", child.getProject().getCombination().toString()));
+                    }
+                }
+            }
+        }
+    }
+    
+    @Test
+    public void testMatrixProjectWithGroovyLabelAssignmentProperty() throws Exception
+    {
+        String paramName = "PARAM1";
+        String defaultParamValue = "VALUE";
+        
+        MatrixProject project = j.createMatrixProject();
+        AxisList axes = new AxisList();
+        axes.add(new TextAxis("axisParam", "axis1","axis2"));
+        axes.add(new LabelAxis("axisLabel", Arrays.asList("test1", "test2")));
+        project.setAxes(axes);
+        project.setCombinationFilter("(axisParam==\"axis1\" && axisLabel==\"test1\") || (axisParam==\"axis2\" && axisLabel==\"test2\")");
+        
+        ParametersDefinitionProperty paramProp = new ParametersDefinitionProperty(
+                new StringParameterDefinition(paramName, defaultParamValue)
+        );
+        project.addProperty(paramProp);
+        
+        GroovyLabelAssignmentProperty prop = new GroovyLabelAssignmentProperty(null);
+        project.addProperty(prop);
+        
+        {
+            prop.setGroovyScript(StringUtils.join(Arrays.asList(
+                    "switch(binding.getVariables().get(\"axisParam\")){",
+                    "case \"axis1\":",
+                    "    return \"common1&&common2\";",
+                    "case \"axis2\":",
+                    "    return \"test1\";",
+                    "}",
+                    "return null;"
+            ), "\n"));
+            for(int i = 0; i < BUILD_REPEAT; ++i)
+            {
+                String paramValue = "AnotherValue";
+                
+                MatrixBuild build = scheduleBuildWithParameters(
+                        project,
+                        new StringParameterValue(paramName, paramValue)
+                );
+                
+                for(MatrixRun child: build.getRuns())
+                {
+                    String axisParam = child.getProject().getCombination().get("axisParam");
+                    if("axis1".equals(axisParam))
+                    {
+                        assertBuiltOn(slave3, child);
+                    }
+                    else if("axis2".equals(axisParam))
+                    {
+                        assertBuiltOn(slave1, child);
                     }
                     else
                     {
