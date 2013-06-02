@@ -50,7 +50,7 @@ import org.jvnet.hudson.test.TestPluginManager;
  * mainly fix for Windows.
  * SEE https://wiki.jenkins-ci.org/display/JENKINS/Unit+Test+on+Windows for details.
  */
-public class GroovyLabelAssingmentJenkinsRule extends JenkinsRule
+public class GroovyLabelAssignmentJenkinsRule extends JenkinsRule
 {
     private static Thread deleteThread = null;
     

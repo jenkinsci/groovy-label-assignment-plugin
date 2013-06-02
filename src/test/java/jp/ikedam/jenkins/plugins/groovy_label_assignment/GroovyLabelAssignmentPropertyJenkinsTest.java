@@ -70,11 +70,11 @@ public class GroovyLabelAssignmentPropertyJenkinsTest
     private static final int BUILD_REPEAT = 2;
     private static final long BUILD_TIMEOUT = 5 * 1000;
     @Rule
-    public GroovyLabelAssingmentJenkinsRule j = new GroovyLabelAssingmentJenkinsRule();
+    public GroovyLabelAssignmentJenkinsRule j = new GroovyLabelAssignmentJenkinsRule();
     
-    private GroovyLabelAssingmentProperty.DescriptorImpl getDescriptor()
+    private GroovyLabelAssignmentProperty.DescriptorImpl getDescriptor()
     {
-        return (GroovyLabelAssingmentProperty.DescriptorImpl)Jenkins.getInstance().getDescriptor(GroovyLabelAssingmentProperty.class);
+        return (GroovyLabelAssignmentProperty.DescriptorImpl)Jenkins.getInstance().getDescriptor(GroovyLabelAssignmentProperty.class);
     }
     
     
@@ -200,7 +200,7 @@ public class GroovyLabelAssignmentPropertyJenkinsTest
                 new StringParameterDefinition(paramName, defaultParamValue)
         );
         project.addProperty(paramProp);
-        GroovyLabelAssingmentProperty prop = new GroovyLabelAssingmentProperty(null);
+        GroovyLabelAssignmentProperty prop = new GroovyLabelAssignmentProperty(null);
         project.addProperty(prop);
         CaptureEnvironmentBuilder ceb = new CaptureEnvironmentBuilder();
         project.getBuildersList().add(ceb);
@@ -348,7 +348,7 @@ public class GroovyLabelAssignmentPropertyJenkinsTest
                 new StringParameterDefinition(paramName, defaultParamValue)
         );
         project.addProperty(paramProp);
-        GroovyLabelAssingmentProperty prop = new GroovyLabelAssingmentProperty(null);
+        GroovyLabelAssignmentProperty prop = new GroovyLabelAssignmentProperty(null);
         project.addProperty(prop);
         CaptureEnvironmentBuilder ceb = new CaptureEnvironmentBuilder();
         project.getBuildersList().add(ceb);
@@ -426,7 +426,7 @@ public class GroovyLabelAssignmentPropertyJenkinsTest
     @Test
     public void testDescriptor_doCheckGroovyScript()
     {
-        GroovyLabelAssingmentProperty.DescriptorImpl descriptor = getDescriptor();
+        GroovyLabelAssignmentProperty.DescriptorImpl descriptor = getDescriptor();
         
         // ok for proper script
         {

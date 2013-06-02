@@ -58,16 +58,16 @@ import hudson.model.labels.LabelExpression;
 import hudson.util.FormValidation;
 
 /**
- * JobProperty that holds configuration for GroovyLabelAssingment.
+ * JobProperty that holds configuration for GroovyLabelAssignment.
  */
-public class GroovyLabelAssingmentProperty extends JobProperty<AbstractProject<?, ?>>
+public class GroovyLabelAssignmentProperty extends JobProperty<AbstractProject<?, ?>>
 {
     /**
      * Property name used for job configuration page.
      */
     static public final String PROPERTYNAME = "groovy_label_assignment";
     
-    static private final Logger LOGGER = Logger.getLogger(GroovyLabelAssingmentProperty.class.getName());
+    static private final Logger LOGGER = Logger.getLogger(GroovyLabelAssignmentProperty.class.getName());
     
     private String groovyScript;
     
@@ -97,7 +97,7 @@ public class GroovyLabelAssingmentProperty extends JobProperty<AbstractProject<?
      * @param groovyScript
      */
     @DataBoundConstructor
-    public GroovyLabelAssingmentProperty(String groovyScript)
+    public GroovyLabelAssignmentProperty(String groovyScript)
     {
         this.groovyScript = groovyScript;
     }
@@ -150,7 +150,7 @@ public class GroovyLabelAssingmentProperty extends JobProperty<AbstractProject<?
             return false;
         }
         
-        LabelAssignmentAction labelAction = new GroovyLabelAssingmentAction(label);
+        LabelAssignmentAction labelAction = new GroovyLabelAssignmentAction(label);
         actions.add(0, labelAction);
         
         LOGGER.info(String.format("%s: label is modified to %s", project.getName(), labelString));
@@ -231,7 +231,7 @@ public class GroovyLabelAssingmentProperty extends JobProperty<AbstractProject<?
         @Override
         public String getDisplayName()
         {
-            return Messages.GroovyLabelAssingmentProperty_DisplayName();
+            return Messages.GroovyLabelAssignmentProperty_DisplayName();
         }
         
         /** 
@@ -258,8 +258,8 @@ public class GroovyLabelAssingmentProperty extends JobProperty<AbstractProject<?
             }
             
             @SuppressWarnings("unchecked")
-            Class<? extends GroovyLabelAssingmentProperty> clazz
-                = (Class<? extends GroovyLabelAssingmentProperty>)getClass().getEnclosingClass();
+            Class<? extends GroovyLabelAssignmentProperty> clazz
+                = (Class<? extends GroovyLabelAssignmentProperty>)getClass().getEnclosingClass();
             
             return req.bindJSON(clazz, form);
         }
@@ -274,7 +274,7 @@ public class GroovyLabelAssingmentProperty extends JobProperty<AbstractProject<?
         {
             if(StringUtils.isBlank(groovyScript))
             {
-                return FormValidation.error(Messages.GroovyLabelAssingmentProperty_groovyScript_required());
+                return FormValidation.error(Messages.GroovyLabelAssignmentProperty_groovyScript_required());
             }
             
             try

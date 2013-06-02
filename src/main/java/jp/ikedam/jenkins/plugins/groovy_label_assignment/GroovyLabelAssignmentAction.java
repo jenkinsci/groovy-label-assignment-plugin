@@ -28,9 +28,9 @@ import hudson.model.labels.LabelAssignmentAction;
 import hudson.model.queue.SubTask;
 
 /**
- * Holds the label name assigned by GroovyLabelAssingmentProperty.
+ * Holds the label name assigned by GroovyLabelAssignmentProperty.
  */
-public class GroovyLabelAssingmentAction implements LabelAssignmentAction
+public class GroovyLabelAssignmentAction implements LabelAssignmentAction
 {
     private Label label;
     
@@ -39,7 +39,7 @@ public class GroovyLabelAssingmentAction implements LabelAssignmentAction
      * 
      * @param label assigned label.
      */
-    public GroovyLabelAssingmentAction(Label label)
+    public GroovyLabelAssignmentAction(Label label)
     {
         this.label = label;
     }
