@@ -31,7 +31,9 @@ import java.util.logging.Logger;
 import net.sf.json.JSONObject;
 
 import org.apache.commons.lang.StringUtils;
+import org.codehaus.groovy.control.CompilationFailedException;
 import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
 
 import antlr.ANTLRException;
@@ -53,6 +55,7 @@ import hudson.model.JobPropertyDescriptor;
 import hudson.model.Label;
 import hudson.model.labels.LabelAssignmentAction;
 import hudson.model.labels.LabelExpression;
+import hudson.util.FormValidation;
 
 /**
  * JobProperty that holds configuration for GroovyLabelAssingment.
@@ -110,7 +113,8 @@ public class GroovyLabelAssingmentProperty extends JobProperty<AbstractProject<?
         {
             Binding binding = createBinding(project, actions);
             out = new GroovyShell(binding).evaluate(getGroovyScript());
-        }catch(Exception e)
+        }
+        catch(Exception e)
         {
             LOGGER.log(Level.SEVERE, String.format("%s: Failed to run script", project.getName()), e);
             return false;
@@ -246,6 +250,25 @@ public class GroovyLabelAssingmentProperty extends JobProperty<AbstractProject<?
                 = (Class<? extends GroovyLabelAssingmentProperty>)getClass().getEnclosingClass();
             
             return req.bindJSON(clazz, form);
+        }
+        
+        /**
+         * Do syntax check of a Groovy script.
+         * 
+         * @param groovyScript
+         * @return FormValidation object.
+         */
+        public FormValidation doCheckGroovyScript(@QueryParameter String groovyScript)
+        {
+            try
+            {
+                new GroovyShell().parse(groovyScript);
+            }
+            catch(CompilationFailedException e)
+            {
+                return FormValidation.error(e.getMessage());
+            }
+            return FormValidation.ok();
         }
     }
 }
