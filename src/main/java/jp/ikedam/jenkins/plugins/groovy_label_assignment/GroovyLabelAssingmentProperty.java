@@ -272,6 +272,11 @@ public class GroovyLabelAssingmentProperty extends JobProperty<AbstractProject<?
          */
         public FormValidation doCheckGroovyScript(@QueryParameter String groovyScript)
         {
+            if(StringUtils.isBlank(groovyScript))
+            {
+                return FormValidation.error(Messages.GroovyLabelAssingmentProperty_groovyScript_required());
+            }
+            
             try
             {
                 new GroovyShell().parse(groovyScript);
