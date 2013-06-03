@@ -49,14 +49,14 @@ Groovy Label Assignment plugin provides following alternate solution:
 
 * Define a User-defined axis "platform": arm, win, linux
 * Define "Groovy script to restrict where this project can be run":
-```
-def labelMap = [
-    arm: "armcc",
-    win: "vs2010",
-    linux: "gcc",
-];
-return labelMap.get(binding.getVariables().get("platform"));
-```
+	```
+	def labelMap = [
+	    arm: "armcc",
+	    win: "vs2010",
+	    linux: "gcc",
+	];
+	return labelMap.get(binding.getVariables().get("platform"));
+	```
 
 Use case 2
 ----------
@@ -71,9 +71,7 @@ You can create a satisfying job by using Groovy Label Assignment plugin:
 * Parameterize the job.
 * Define a Boolen Value parameter "release", which specifies the triggering build is for release.
 * Define "Groovy script to restrict where this project can be run":
-```
-return (release == "true")?"RELEASE":"!RELEASE"
-```
+    return (release == "true")?"RELEASE":"!RELEASE"
 
 Limitations
 -----------
