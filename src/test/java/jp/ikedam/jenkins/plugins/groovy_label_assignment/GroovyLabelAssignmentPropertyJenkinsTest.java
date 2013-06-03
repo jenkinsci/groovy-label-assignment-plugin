@@ -59,7 +59,15 @@ import org.apache.commons.lang.StringUtils;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.jvnet.hudson.test.JenkinsRule.WebClient;
 import org.jvnet.hudson.test.CaptureEnvironmentBuilder;
+import org.xml.sax.SAXException;
+
+import com.gargoylesoftware.htmlunit.html.HtmlCheckBoxInput;
+import com.gargoylesoftware.htmlunit.html.HtmlForm;
+import com.gargoylesoftware.htmlunit.html.HtmlInput;
+import com.gargoylesoftware.htmlunit.html.HtmlPage;
+import com.gargoylesoftware.htmlunit.html.HtmlTextArea;
 
 import static org.junit.Assert.*;
 
@@ -512,5 +520,31 @@ public class GroovyLabelAssignmentPropertyJenkinsTest
             String script = "{";
             assertEquals(FormValidation.Kind.ERROR, descriptor.doCheckGroovyScript(script).kind);
         }
+    }
+    
+    @Test
+    public void testConfiguration() throws Exception
+    {
+        WebClient wc = j.createWebClient();
+        FreeStyleProject project = j.createFreeStyleProject();
+        String name = project.getName();
+        String groovyScript = "return null;";
+        
+        {
+            HtmlPage page = wc.getPage(project, "configure");
+            HtmlForm form = page.getFormByName("config");
+            HtmlCheckBoxInput checkbox = form.getInputByName(GroovyLabelAssignmentProperty.PROPERTYNAME);
+            page = (HtmlPage)checkbox.setChecked(true);
+            
+            form = page.getFormByName("config");
+            HtmlTextArea textarea = form.getTextAreaByName("_.groovyScript");
+            textarea.setText(groovyScript);
+            j.submit(form);
+        }
+        
+        project = (FreeStyleProject)Jenkins.getInstance().getItem(name);
+        GroovyLabelAssignmentProperty prop = project.getProperty(GroovyLabelAssignmentProperty.class);
+        assertNotNull(prop);
+        assertEquals(groovyScript, prop.getGroovyScript());
     }
 }
