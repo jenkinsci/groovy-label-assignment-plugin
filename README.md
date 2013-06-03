@@ -31,24 +31,28 @@ Think a following scenario:
 
 * You have to build a project for multiple platforms: arm, win, linux
 * There are following nodes:
-|Node|Label|arm|win|linux|
-|win1|vs2010,armcc|O|O|X|
-|win2|armcc|X|O|X|
-|linux|gcc|X|X|O|
+	
+	|Node|Label|arm|win|linux|
+	|:---|:----|:--|:--|:----|
+	|win1|vs2010,armcc|O|O|X|
+	|win2|armcc|X|O|X|
+	|linux|gcc|X|X|O|
 
 You can manage this by using multi-configuration project as followings:
 
 * Define a User-defined axis "platform": arm, win, linux
 * Define a Slaves axis "slave": armcc, vs2010, gcc
 * Define "Combination Filter" as following:
-```
-    (platform == "arm" && slave=="armcc") || (platform == "win" && slave=="vs2010") || (platform == "linux" && slave=="gcc")
-```
+	
+	```
+	(platform == "arm" && slave=="armcc") || (platform == "win" && slave=="vs2010") || (platform == "linux" && slave=="gcc")
+	```
 
 Groovy Label Assignment plugin provides following alternate solution:
 
 * Define a User-defined axis "platform": arm, win, linux
 * Define "Groovy script to restrict where this project can be run":
+	
 	```
 	def labelMap = [
 	    arm: "armcc",
@@ -71,7 +75,10 @@ You can create a satisfying job by using Groovy Label Assignment plugin:
 * Parameterize the job.
 * Define a Boolen Value parameter "release", which specifies the triggering build is for release.
 * Define "Groovy script to restrict where this project can be run":
-    return (release == "true")?"RELEASE":"!RELEASE"
+	
+	```
+	return (release == "true")?"RELEASE":"!RELEASE"
+	```
 
 Limitations
 -----------
@@ -84,11 +91,13 @@ Limitations
 	* Groovy script is not defined.
 	* Groovy script contains syntax errors.
 	* Groovy script failed at the runtime.
-	* Returned value cannot be parsed as a label expression.
 		* Especially in case referring non-binded variables. It often happens when running with multi-configuration project. In that case, you can access the variable safely as following:
-```
-binding.getVariables().get("variable-name");
-```
+			
+			```
+			binding.getVariables().get("variable-name");
+			```
+			
+	* Returned value cannot be parsed as a label expression.
 
 How does this work?
 -------------------
