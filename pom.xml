@@ -5,12 +5,36 @@
     <artifactId>plugin</artifactId>
     <version>1.466</version><!-- which version of Jenkins is this plugin built against? -->
   </parent>
-
+  
   <groupId>jp.ikedam.jenkins.plugins</groupId>
   <artifactId>groovy-label-assignment</artifactId>
-  <version>0.1.0-SNAPSHOT</version>
+  <version>1.0.0-SNAPSHOT</version>
   <packaging>hpi</packaging>
-
+  <name>Groovy Label Assignment plugin</name>
+  <description>Jenkins plugin to set label dynamically with groovy scripts.</description>
+  
+  <url>http://wiki.jenkins-ci.org/display/JENKINS/Groovy+Label+Assignment+plugin</url>
+  
+  <scm>
+    <connection>scm:git:git://github.com/jenkinsci/${project.artifactId}-plugin.git</connection>
+    <developerConnection>scm:git:git@github.com:jenkinsci/${project.artifactId}-plugin.git</developerConnection>    <url>https://github.com/jenkinsci/${project.artifactId}-plugin</url>
+  </scm>
+  
+  <developers>
+    <developer>
+      <id>ikedam</id>
+      <name>IKEDA Yasuyuki</name>
+    </developer>
+  </developers>
+  
+  <licenses>
+    <license>
+      <name>The MIT license</name>
+      <url>http://www.opensource.org/licenses/mit-license.php</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+  
   <dependencies>
     <dependency>
       <groupId>commons-lang</groupId>
