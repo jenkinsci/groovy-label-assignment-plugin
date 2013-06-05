@@ -17,7 +17,8 @@
   
   <scm>
     <connection>scm:git:git://github.com/jenkinsci/${project.artifactId}-plugin.git</connection>
-    <developerConnection>scm:git:git@github.com:jenkinsci/${project.artifactId}-plugin.git</developerConnection>    <url>https://github.com/jenkinsci/${project.artifactId}-plugin</url>
+    <developerConnection>scm:git:git@github.com:jenkinsci/${project.artifactId}-plugin.git</developerConnection>
+    <url>https://github.com/jenkinsci/${project.artifactId}-plugin</url>
   </scm>
   
   <developers>
