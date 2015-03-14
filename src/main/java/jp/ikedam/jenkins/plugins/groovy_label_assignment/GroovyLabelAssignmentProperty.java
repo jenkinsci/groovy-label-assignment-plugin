@@ -215,7 +215,10 @@ public class GroovyLabelAssignmentProperty extends JobProperty<AbstractProject<?
         
         LOGGER.fine(String.format("%s: set environments %s", project.getName(), env.toString()));
         
-        return new Binding(env);
+        Binding binding = new Binding();
+        binding.getVariables().putAll(env);
+        binding.setVariable("currentJob", project);
+        return binding;
     }
     
     /**
