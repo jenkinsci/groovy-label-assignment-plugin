@@ -6,18 +6,27 @@
     <li>When exception occurred or Label Expression is not parsed correctly, builds are canceled.</li>
 </ul>
 <br>
-<p>Following variables are binded, but there may be cases that some type of parameters are not set, or set to wrong value.
+<p>Following variables are bound:</p>
+<dl>
+<dt>currentJob</dt>
+  <dd>
+  The job to be built.
+  For multi-configuration projects, an instance of MatrixProject is passed for a parent build
+  and an instance of MatrixConfiguration is passed for a child build.
+  </dd>
+</dl>
+<p>Additionally, following variables are bound, but there may be cases that some type of parameters are not set, or set to wrong value.
 This is for a build is not started yet when this Groovy script is evaluated.</p>
 <ul>
     <li>Parameters specified in "This build is parameterized"</li>
-    <li>Axes defined in a matrix project.</li>
+    <li>Axes defined in a multi-configuration project.</li>
     <li>Other variables that plugins create.</li>
 </ul>
 <br>
 <p>Here is an example:</p>
 <code style="white-space: pre-wrap;">
 Example1-----------------------------------------------------------------------------
-// parameters defined in "This build is parameterized" are binded,
+// parameters defined in "This build is parameterized" are bound,
 // and you can use them just as variables.
 if(is_test == "true")
 {
@@ -29,8 +38,8 @@ if(is_test == "true")
 return null;
 
 Example2-----------------------------------------------------------------------------
-// Values defined with axe with a matrix project are also binded.
-// But that value is not defined in a root matrix build, 
+// Values defined with axes with a multi-configuration project are also bound.
+// But that value is not defined in a parent build, 
 // so access with binding.getVariables().get(VARNAME) .
 // (accessing VARNAME directly results exceptions)
 switch(binding.getVariables().get("target"))
@@ -44,5 +53,9 @@ switch(binding.getVariables().get("target"))
         // run on Linux.
         return "Linux";
 }
+
+Example3-----------------------------------------------------------------------------
+// Decides the node to run on for its job name.
+["win", "linux"].find(currentJob.name.contains(it))
 </code>
 </div>
