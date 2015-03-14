@@ -28,7 +28,6 @@ import java.io.OutputStream;
 import java.util.concurrent.ExecutionException;
 
 import jenkins.model.Jenkins;
-
 import hudson.Functions;
 import hudson.Util;
 import hudson.PluginWrapper;
@@ -145,6 +144,13 @@ public class GroovyLabelAssignmentJenkinsRule extends JenkinsRule
     {
         // createFreeStyleProject is protected with Jenkins < 1.479
         return super.createFreeStyleProject();
+    }
+    
+    @Override
+    public FreeStyleProject createFreeStyleProject(String name) throws IOException
+    {
+        // createFreeStyleProject is protected with Jenkins < 1.479
+        return super.createFreeStyleProject(name);
     }
     
     @Override

@@ -33,7 +33,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import jenkins.model.Jenkins;
-
+import hudson.matrix.Axis;
 import hudson.matrix.AxisList;
 import hudson.matrix.MatrixRun;
 import hudson.matrix.LabelAxis;
@@ -544,5 +544,62 @@ public class GroovyLabelAssignmentPropertyJenkinsTest
         GroovyLabelAssignmentProperty prop = project.getProperty(GroovyLabelAssignmentProperty.class);
         assertNotNull(prop);
         assertEquals(groovyScript, prop.getGroovyScript());
+    }
+    
+    @Test
+    public void testCurrentJobWithFreeStyleProject() throws Exception {
+        // This allows a build decides which slave to run on with its project name.
+        // not applicable for slave3.
+        String script = "['test1', 'test2'].find { currentJob.name.contains(it) }";
+        
+        // project names and expected nodes map
+        Map<String, Node> projectAndNodeMap = new HashMap<String, Node>();
+        projectAndNodeMap.put("project_test1", slave1);
+        projectAndNodeMap.put("project_test2", slave2);
+        projectAndNodeMap.put("project_test3", j.jenkins);
+        
+        
+        for(Map.Entry<String, Node> entry: projectAndNodeMap.entrySet())
+        {
+            FreeStyleProject projectToTest = j.createFreeStyleProject(entry.getKey());
+            projectToTest.addProperty(new GroovyLabelAssignmentProperty(script));
+            projectToTest.setAssignedLabel(LabelExpression.parseExpression("master")); // overridden with GroovyLabelAssignmentProperty
+            
+            for(int i = 0; i < BUILD_REPEAT; ++i)
+            {
+                FreeStyleBuild build = projectToTest.scheduleBuild2(0).get();
+                assertBuiltOn(entry.getValue(), build);
+            }
+        }
+    }
+    
+    @Test
+    public void testCurrentJobWithMatrixProject() throws Exception {
+        // As MatrixRun is passed as currentJob for matrix childs and the name of MatrixRun contains the axis value, 
+        // this allows child builds decide which slave to run on with threir axis value.
+        // not applicable for slave3.
+        String script = "['test1', 'test2'].find { currentJob.name.contains(it) }";
+        
+        MatrixProject p = j.createMatrixProject();
+        p.setAxes(new AxisList(new Axis("axisParam", "run-on-test1", "run-on-test2", "run-on-test3")));
+        p.addProperty(new GroovyLabelAssignmentProperty(script));
+        p.setAssignedLabel(LabelExpression.parseExpression("master")); // overridden with GroovyLabelAssignmentProperty
+        
+        // axis names and expected nodes map
+        Map<String, Node> axisValueAndNodeMap = new HashMap<String, Node>();
+        axisValueAndNodeMap.put("run-on-test1", slave1);
+        axisValueAndNodeMap.put("run-on-test2", slave2);
+        axisValueAndNodeMap.put("run-on-test3", j.jenkins);
+        
+        for(int i = 0; i < BUILD_REPEAT; ++i)
+        {
+            MatrixBuild build = p.scheduleBuild2(0).get();
+            
+            for(MatrixRun child: build.getRuns())
+            {
+                String axisValue = child.getProject().getCombination().get("axisParam");
+                assertBuiltOn(axisValueAndNodeMap.get(axisValue), child);
+            }
+        }
     }
 }
