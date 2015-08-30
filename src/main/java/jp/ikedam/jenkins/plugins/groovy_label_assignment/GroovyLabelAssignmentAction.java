@@ -23,6 +23,7 @@
  */
 package jp.ikedam.jenkins.plugins.groovy_label_assignment;
 
+import jenkins.model.Jenkins;
 import hudson.model.Label;
 import hudson.model.labels.LabelAssignmentAction;
 import hudson.model.queue.SubTask;
@@ -32,16 +33,39 @@ import hudson.model.queue.SubTask;
  */
 public class GroovyLabelAssignmentAction implements LabelAssignmentAction
 {
-    private Label label;
+    @Deprecated
+    transient private Label label;
+    
+    private final String labelString;
     
     /**
      * Constructor
      * 
-     * @param label assigned label.
+     * @param labelString assigned label expression.
+     * @since 1.1.1
      */
+    public GroovyLabelAssignmentAction(String labelString)
+    {
+        this.labelString = labelString;
+    }
+    
+    /**
+     * @param label
+     * @deprecated use {@link GroovyLabelAssignmentAction#GroovyLabelAssignmentAction(String)}
+     */
+    @Deprecated
     public GroovyLabelAssignmentAction(Label label)
     {
-        this.label = label;
+        this(label.getExpression());
+    }
+    
+    private Object readResolve()
+    {
+        if(label != null)
+        {
+            return new GroovyLabelAssignmentAction(label.getExpression());
+        }
+        return this;
     }
     
     /**
@@ -89,7 +113,7 @@ public class GroovyLabelAssignmentAction implements LabelAssignmentAction
     @Override
     public Label getAssignedLabel(SubTask task)
     {
-        return label;
+        return getAssignedLabel();
     }
     
     
@@ -102,6 +126,15 @@ public class GroovyLabelAssignmentAction implements LabelAssignmentAction
      */
     public Label getAssignedLabel()
     {
-        return label;
+        return Jenkins.getInstance().getLabel(getLabelString());
+    }
+    
+    /**
+     * @return the expression string for the assigned label.
+     * @since 1.1.1
+     */
+    public String getLabelString()
+    {
+        return labelString;
     }
 }

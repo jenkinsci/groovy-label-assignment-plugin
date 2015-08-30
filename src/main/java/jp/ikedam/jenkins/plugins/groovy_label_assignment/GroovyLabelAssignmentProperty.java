@@ -139,10 +139,9 @@ public class GroovyLabelAssignmentProperty extends JobProperty<AbstractProject<?
             return true;
         }
         
-        Label label;
         try
         {
-            label = LabelExpression.parseExpression(labelString);
+            LabelExpression.parseExpression(labelString);
         }
         catch(ANTLRException e)
         {
@@ -150,7 +149,7 @@ public class GroovyLabelAssignmentProperty extends JobProperty<AbstractProject<?
             return false;
         }
         
-        LabelAssignmentAction labelAction = new GroovyLabelAssignmentAction(label);
+        LabelAssignmentAction labelAction = new GroovyLabelAssignmentAction(labelString);
         actions.add(0, labelAction);
         
         LOGGER.info(String.format("%s: label is modified to %s", project.getName(), labelString));

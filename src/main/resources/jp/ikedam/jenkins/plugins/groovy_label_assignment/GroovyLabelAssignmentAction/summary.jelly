@@ -29,7 +29,7 @@ THE SOFTWARE.
     <t:summary icon="computer.png">
         <l:pane title="${%Assigned Label}" width="3">
             <f:block>
-                ${it.assignedLabel.expression}
+                ${it.labelString}
             </f:block>
         </l:pane>
     </t:summary>
