@@ -24,8 +24,10 @@
 package jp.ikedam.jenkins.plugins.groovy_label_assignment;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -59,6 +61,7 @@ import org.apache.commons.lang.StringUtils;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.jvnet.hudson.test.Bug;
 import org.jvnet.hudson.test.JenkinsRule.WebClient;
 import org.jvnet.hudson.test.CaptureEnvironmentBuilder;
 
@@ -601,5 +604,43 @@ public class GroovyLabelAssignmentPropertyJenkinsTest
                 assertBuiltOn(axisValueAndNodeMap.get(axisValue), child);
             }
         }
+    }
+    
+    @Bug(30135)
+    @Test
+    public void testLabelIsOnceRemoved() throws Exception
+    {
+        slave1.getComputer().cliOffline("for testing");
+        assertTrue(slave1.getComputer().isOffline());
+        
+        FreeStyleProject p = j.createFreeStyleProject();
+        p.addProperty(new GroovyLabelAssignmentProperty("return \"test1\""));
+        Future<FreeStyleBuild> b = p.scheduleBuild2(0);
+        
+        try {
+            b.get(500, TimeUnit.MILLISECONDS);
+            fail("Build should not run as the node is offline.");
+        } catch(TimeoutException e) {
+            // ok
+        }
+        
+        // remove "test1" from slave1
+        // Unfortunately, there's no easy way to do this...
+        // Copied from hudson.model.Computer#replaceBy(Node)
+        synchronized (j.jenkins)
+        {
+            List<Node> nodes = new ArrayList<Node>(j.jenkins.getNodes());
+            int i = nodes.indexOf(slave1);
+            if(i<0)
+            {
+                throw new IOException("This slave appears to be removed while you were editing the configuration");
+            }
+            slave1 = j.createSlave(slave1.getNodeName(), "", null);
+            nodes.set(i, slave1);
+            j.jenkins.setNodes(nodes);
+        }
+        
+        j.createOnlineSlave("test1");
+        assertNotNull(b.get(500, TimeUnit.MILLISECONDS));
     }
 }
