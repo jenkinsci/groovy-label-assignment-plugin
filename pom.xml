@@ -8,7 +8,7 @@
   
   <groupId>jp.ikedam.jenkins.plugins</groupId>
   <artifactId>groovy-label-assignment</artifactId>
-  <version>1.1.1</version>
+  <version>1.1.2-SNAPSHOT</version>
   <packaging>hpi</packaging>
   <name>Groovy Label Assignment plugin</name>
   <description>Jenkins plugin to set label dynamically with groovy scripts.</description>
