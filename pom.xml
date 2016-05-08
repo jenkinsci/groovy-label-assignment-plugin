@@ -51,7 +51,7 @@
         <artifactId>maven-hpi-plugin</artifactId>
         <extensions>true</extensions>
         <configuration>
-          <compatibleSinceVersion>1.4.0</compatibleSinceVersion>
+          <compatibleSinceVersion>1.2.0</compatibleSinceVersion>
         </configuration>
       </plugin>
       <plugin>
