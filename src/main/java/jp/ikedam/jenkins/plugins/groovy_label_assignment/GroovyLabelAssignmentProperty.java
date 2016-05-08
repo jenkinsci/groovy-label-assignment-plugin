@@ -23,23 +23,24 @@
  */
 package jp.ikedam.jenkins.plugins.groovy_label_assignment;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
 
 import org.apache.commons.lang.StringUtils;
-import org.codehaus.groovy.control.CompilationFailedException;
+import org.jenkinsci.plugins.scriptsecurity.sandbox.groovy.SecureGroovyScript;
+import org.jenkinsci.plugins.scriptsecurity.scripts.ClasspathEntry;
 import org.kohsuke.stapler.DataBoundConstructor;
-import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
 
 import antlr.ANTLRException;
 
 import groovy.lang.Binding;
-import groovy.lang.GroovyShell;
 import hudson.EnvVars;
 import hudson.Extension;
 import hudson.Util;
@@ -52,10 +53,8 @@ import hudson.model.Action;
 import hudson.model.EnvironmentContributingAction;
 import hudson.model.JobProperty;
 import hudson.model.JobPropertyDescriptor;
-import hudson.model.Label;
 import hudson.model.labels.LabelAssignmentAction;
 import hudson.model.labels.LabelExpression;
-import hudson.util.FormValidation;
 
 /**
  * JobProperty that holds configuration for GroovyLabelAssignment.
@@ -69,37 +68,54 @@ public class GroovyLabelAssignmentProperty extends JobProperty<AbstractProject<?
     
     static private final Logger LOGGER = Logger.getLogger(GroovyLabelAssignmentProperty.class.getName());
     
-    private String groovyScript;
+    @Deprecated
+    private transient String groovyScript;
+    
+    private final SecureGroovyScript secureGroovyScript;
     
     /**
      * @return the Groovy Script
+     * @deprecated use {@link #getSecureGroovyScript()} instead
      */
+    @Deprecated
     public String getGroovyScript()
     {
         return groovyScript;
     }
     
     /**
-     * Set the Groovy script.
-     * 
-     * For testing purpose.
-     * 
-     * @param groovyScript the Groovy script to set
+     * @return
+     * @since 1.2.0
      */
-    public void setGroovyScript(String groovyScript)
+    public SecureGroovyScript getSecureGroovyScript()
     {
-        this.groovyScript = groovyScript;
+        return secureGroovyScript;
     }
     
     /**
      * Constructor from the form input.
      * 
-     * @param groovyScript
+     * @param secureGroovyScript
+     * @since 1.2.0
      */
     @DataBoundConstructor
+    public GroovyLabelAssignmentProperty(SecureGroovyScript secureGroovyScript)
+    {
+        this.secureGroovyScript = (secureGroovyScript != null) ? secureGroovyScript.configuringWithNonKeyItem() : null;
+    }
+    
     public GroovyLabelAssignmentProperty(String groovyScript)
     {
-        this.groovyScript = groovyScript;
+        this(new SecureGroovyScript(groovyScript, true, Collections.<ClasspathEntry>emptyList()));
+    }
+    
+    private Object readResolve() {
+        if (groovyScript != null)
+        {
+            // < 1.2.0
+            return new GroovyLabelAssignmentProperty(groovyScript);
+        }
+        return this;
     }
     
     /**
@@ -112,11 +128,18 @@ public class GroovyLabelAssignmentProperty extends JobProperty<AbstractProject<?
      */
     public boolean assignLabel(AbstractProject<?, ?> project, List<Action> actions)
     {
-        if(StringUtils.isBlank(getGroovyScript()))
+        if(getSecureGroovyScript() == null)
         {
             // groovyScript is not configured collectlt.
             LOGGER.severe(String.format("%s: GroovyScript is not configured.", project.getName()));
             return false;
+        }
+        
+        Jenkins jenkins = Jenkins.getInstance();
+        ClassLoader cl = (jenkins != null) ? jenkins.getPluginManager().uberClassLoader : null;
+        
+        if (cl == null) {
+            cl = Thread.currentThread().getContextClassLoader();
         }
         
         // Run groovy script.
@@ -124,7 +147,7 @@ public class GroovyLabelAssignmentProperty extends JobProperty<AbstractProject<?
         try
         {
             Binding binding = createBinding(project, actions);
-            out = new GroovyShell(binding).evaluate(getGroovyScript());
+            out = getSecureGroovyScript().evaluate(cl, binding);
         }
         catch(Exception e)
         {
@@ -264,30 +287,6 @@ public class GroovyLabelAssignmentProperty extends JobProperty<AbstractProject<?
                 = (Class<? extends GroovyLabelAssignmentProperty>)getClass().getEnclosingClass();
             
             return req.bindJSON(clazz, form);
-        }
-        
-        /**
-         * Do syntax check of a Groovy script.
-         * 
-         * @param groovyScript
-         * @return FormValidation object.
-         */
-        public FormValidation doCheckGroovyScript(@QueryParameter String groovyScript)
-        {
-            if(StringUtils.isBlank(groovyScript))
-            {
-                return FormValidation.error(Messages.GroovyLabelAssignmentProperty_groovyScript_required());
-            }
-            
-            try
-            {
-                new GroovyShell().parse(groovyScript);
-            }
-            catch(CompilationFailedException e)
-            {
-                return FormValidation.error(e.getMessage());
-            }
-            return FormValidation.ok();
         }
     }
 }

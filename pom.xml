@@ -3,12 +3,12 @@
   <parent>
     <groupId>org.jenkins-ci.plugins</groupId>
     <artifactId>plugin</artifactId>
-    <version>1.466</version><!-- which version of Jenkins is this plugin built against? -->
+    <version>1.509</version><!-- which version of Jenkins is this plugin built against? -->
   </parent>
   
   <groupId>jp.ikedam.jenkins.plugins</groupId>
   <artifactId>groovy-label-assignment</artifactId>
-  <version>1.1.2-SNAPSHOT</version>
+  <version>1.2.0-SNAPSHOT</version>
   <packaging>hpi</packaging>
   <name>Groovy Label Assignment plugin</name>
   <description>Jenkins plugin to set label dynamically with groovy scripts.</description>
@@ -36,6 +36,36 @@
     </license>
   </licenses>
   
+  <dependencies>
+    <dependency>
+      <groupId>org.jenkins-ci.plugins</groupId>
+      <artifactId>script-security</artifactId>
+      <version>1.16</version>
+    </dependency>
+  </dependencies>
+  
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.jenkins-ci.tools</groupId>
+        <artifactId>maven-hpi-plugin</artifactId>
+        <extensions>true</extensions>
+        <configuration>
+          <compatibleSinceVersion>1.4.0</compatibleSinceVersion>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>findbugs-maven-plugin</artifactId>
+        <version>3.0.1</version>
+        <configuration>
+          <xmlOutput>true</xmlOutput>
+          <failOnError>false</failOnError>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+  
   <!-- get every artifact through repo.jenkins-ci.org, which proxies all the artifacts that we need -->
   <repositories>
     <repository>
@@ -50,6 +80,20 @@
       <url>http://repo.jenkins-ci.org/public/</url>
     </pluginRepository>
   </pluginRepositories>
+
+  <!-- INFRA-588 -->
+  <distributionManagement>
+      <repository>
+          <id>central</id>
+          <name>jenkinsci-releases</name>
+          <url>https://repo.jenkins-ci.org/releases</url>
+      </repository>
+      <snapshotRepository>
+          <id>snapshots</id>
+          <name>jenkinsci-snapshots</name>
+          <url>https://repo.jenkins-ci.org/snapshots</url>
+      </snapshotRepository>
+  </distributionManagement>
 
   <properties>
     <!--

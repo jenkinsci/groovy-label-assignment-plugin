@@ -51,6 +51,6 @@ switch(binding.getVariables().get("target"))
 
 Example3-----------------------------------------------------------------------------
 // ジョブの名称から実行するノードを決定します。
-["win", "linux"].find(currentJob.name.contains(it))
+["win", "linux"].find { it -> currentJob.name.contains(it) }
 </code>
 </div>

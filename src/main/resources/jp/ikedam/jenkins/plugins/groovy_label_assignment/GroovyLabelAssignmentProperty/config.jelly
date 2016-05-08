@@ -24,8 +24,7 @@ THE SOFTWARE.
 <?jelly escape-by-default='true'?>
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
   <f:optionalBlock name="groovy_label_assignment" title="${%Groovy script to restrict where this project can be run}" checked="${instance != null}">
-    <f:entry title="${%Groovy Script}" field="groovyScript">
-        <f:textarea />
-    </f:entry>
+    <f:entry field="groovyScript" title="${%About Groovy Script}" /> <!-- just for help-groovyScript.html -->
+    <f:property field="secureGroovyScript" />
   </f:optionalBlock>
 </j:jelly>

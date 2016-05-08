@@ -26,6 +26,7 @@ package jp.ikedam.jenkins.plugins.groovy_label_assignment;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -46,6 +47,7 @@ import hudson.model.AbstractBuild;
 import hudson.model.FreeStyleBuild;
 import hudson.model.ParameterValue;
 import hudson.model.AbstractProject;
+import hudson.model.BooleanParameterValue;
 import hudson.model.Cause;
 import hudson.model.FreeStyleProject;
 import hudson.model.Node;
@@ -55,15 +57,18 @@ import hudson.model.StringParameterDefinition;
 import hudson.model.StringParameterValue;
 import hudson.model.labels.LabelExpression;
 import hudson.slaves.DumbSlave;
-import hudson.util.FormValidation;
 
 import org.apache.commons.lang.StringUtils;
+import org.jenkinsci.plugins.scriptsecurity.sandbox.groovy.SecureGroovyScript;
+import org.jenkinsci.plugins.scriptsecurity.scripts.ClasspathEntry;
+import org.jenkinsci.plugins.scriptsecurity.scripts.ScriptApproval;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.hudson.test.Bug;
 import org.jvnet.hudson.test.JenkinsRule.WebClient;
 import org.jvnet.hudson.test.CaptureEnvironmentBuilder;
+import org.jvnet.hudson.test.recipes.LocalData;
 
 import com.gargoylesoftware.htmlunit.html.HtmlCheckBoxInput;
 import com.gargoylesoftware.htmlunit.html.HtmlForm;
@@ -81,12 +86,6 @@ public class GroovyLabelAssignmentPropertyJenkinsTest
     private static final long BUILD_TIMEOUT = 5 * 1000;
     @Rule
     public GroovyLabelAssignmentJenkinsRule j = new GroovyLabelAssignmentJenkinsRule();
-    
-    private GroovyLabelAssignmentProperty.DescriptorImpl getDescriptor()
-    {
-        return (GroovyLabelAssignmentProperty.DescriptorImpl)Jenkins.getInstance().getDescriptor(GroovyLabelAssignmentProperty.class);
-    }
-    
     
     @SuppressWarnings("deprecation")
     private <P extends AbstractProject<P,R>,R extends AbstractBuild<P,R>> R scheduleBuildWithParameters(
@@ -210,8 +209,6 @@ public class GroovyLabelAssignmentPropertyJenkinsTest
                 new StringParameterDefinition(paramName, defaultParamValue)
         );
         project.addProperty(paramProp);
-        GroovyLabelAssignmentProperty prop = new GroovyLabelAssignmentProperty(null);
-        project.addProperty(prop);
         CaptureEnvironmentBuilder ceb = new CaptureEnvironmentBuilder();
         project.getBuildersList().add(ceb);
         
@@ -235,7 +232,10 @@ public class GroovyLabelAssignmentPropertyJenkinsTest
                 for(int i = 0; i < BUILD_REPEAT; ++i)
                 {
                     String paramValue = "AnotherValue";
-                    prop.setGroovyScript(String.format("return \"%s\";", entry.getKey()));
+                    project.removeProperty(GroovyLabelAssignmentProperty.class);
+                    project.addProperty(new GroovyLabelAssignmentProperty(
+                            String.format("return \"%s\";", entry.getKey())
+                    ));
                     
                     FreeStyleBuild build = scheduleBuildWithParameters(
                             project,
@@ -249,7 +249,10 @@ public class GroovyLabelAssignmentPropertyJenkinsTest
         // Using a parameter
         {
             project.setAssignedLabel(LabelExpression.parseExpression("test1"));
-            prop.setGroovyScript(String.format("return %s;", paramName));
+            project.removeProperty(GroovyLabelAssignmentProperty.class);
+            project.addProperty(new GroovyLabelAssignmentProperty(
+                    String.format("return %s;", paramName)
+            ));
             
             Map<String, Node> slaveMap = new HashMap<String, Node>();
             slaveMap.put(slave1.getNodeName(), slave1);
@@ -280,7 +283,10 @@ public class GroovyLabelAssignmentPropertyJenkinsTest
         // returning null
         {
             project.setAssignedLabel(LabelExpression.parseExpression("test2"));
-            prop.setGroovyScript(String.format("return null;", paramName));
+            project.removeProperty(GroovyLabelAssignmentProperty.class);
+            project.addProperty(new GroovyLabelAssignmentProperty(
+                    "return null;"
+            ));
             
             for(int i = 0; i < BUILD_REPEAT; ++i)
             {
@@ -350,6 +356,8 @@ public class GroovyLabelAssignmentPropertyJenkinsTest
     @Test
     public void testMatrixProjectWithGroovyLabelAssignmentProperty() throws Exception
     {
+        ScriptApproval.get().approveSignature("method groovy.lang.Binding getVariables");
+        
         String paramName = "PARAM1";
         String defaultParamValue = "VALUE";
         
@@ -365,11 +373,9 @@ public class GroovyLabelAssignmentPropertyJenkinsTest
         );
         project.addProperty(paramProp);
         
-        GroovyLabelAssignmentProperty prop = new GroovyLabelAssignmentProperty(null);
-        project.addProperty(prop);
-        
         {
-            prop.setGroovyScript(StringUtils.join(Arrays.asList(
+            project.removeProperty(GroovyLabelAssignmentProperty.class);
+            project.addProperty(new GroovyLabelAssignmentProperty(StringUtils.join(Arrays.asList(
                     "switch(binding.getVariables().get(\"axisParam\")){",
                     "case \"axis1\":",
                     "    return \"common1&&common2\";",
@@ -377,7 +383,7 @@ public class GroovyLabelAssignmentPropertyJenkinsTest
                     "    return \"test1\";",
                     "}",
                     "return null;"
-            ), "\n"));
+            ), "\n")));
             for(int i = 0; i < BUILD_REPEAT; ++i)
             {
                 String paramValue = "AnotherValue";
@@ -418,32 +424,14 @@ public class GroovyLabelAssignmentPropertyJenkinsTest
                 new StringParameterDefinition(paramName, defaultParamValue)
         );
         project.addProperty(paramProp);
-        GroovyLabelAssignmentProperty prop = new GroovyLabelAssignmentProperty(null);
-        project.addProperty(prop);
         CaptureEnvironmentBuilder ceb = new CaptureEnvironmentBuilder();
         project.getBuildersList().add(ceb);
         
         // script is null
         {
             project.setAssignedLabel(LabelExpression.parseExpression("test3"));
-            prop.setGroovyScript(null);
-            
-            for(int i = 0; i < BUILD_REPEAT; ++i)
-            {
-                String paramValue = "AnotherValue1";
-                
-                FreeStyleBuild build = scheduleBuildWithParameters(
-                        project,
-                        new StringParameterValue(paramName, paramValue)
-                );
-                assertNull(build);
-            }
-        }
-        
-        // script is blank
-        {
-            project.setAssignedLabel(LabelExpression.parseExpression("test1"));
-            prop.setGroovyScript("  ");
+            project.removeProperty(GroovyLabelAssignmentProperty.class);
+            project.addProperty(new GroovyLabelAssignmentProperty((SecureGroovyScript)null));
             
             for(int i = 0; i < BUILD_REPEAT; ++i)
             {
@@ -460,7 +448,8 @@ public class GroovyLabelAssignmentPropertyJenkinsTest
         // script contains syntax error
         {
             project.setAssignedLabel(LabelExpression.parseExpression("test1"));
-            prop.setGroovyScript("\"test1");
+            project.removeProperty(GroovyLabelAssignmentProperty.class);
+            project.addProperty(new GroovyLabelAssignmentProperty("\"test1"));
             
             for(int i = 0; i < BUILD_REPEAT; ++i)
             {
@@ -478,7 +467,7 @@ public class GroovyLabelAssignmentPropertyJenkinsTest
         // script contains runtime error
         {
             project.setAssignedLabel(LabelExpression.parseExpression("test1"));
-            prop.setGroovyScript("return nosuchvariable;");
+            project.addProperty(new GroovyLabelAssignmentProperty("return nosuchvariable;"));
             
             for(int i = 0; i < BUILD_REPEAT; ++i)
             {
@@ -494,66 +483,58 @@ public class GroovyLabelAssignmentPropertyJenkinsTest
     }
     
     @Test
-    public void testDescriptor_doCheckGroovyScript()
+    public void testConfiguration1() throws Exception
     {
-        GroovyLabelAssignmentProperty.DescriptorImpl descriptor = getDescriptor();
+        FreeStyleProject project = j.createFreeStyleProject();
+        GroovyLabelAssignmentProperty prop = new GroovyLabelAssignmentProperty(new SecureGroovyScript(
+                "return null;",
+                true,
+                Collections.<ClasspathEntry>emptyList()
+        ));
+        project.addProperty(prop);
+        j.configRoundtrip(project);
         
-        // ok for proper script
-        {
-            String script = "switch(p){case \"a\": return \"test1\"; case \"b\": return \"test2\";}; return \"\";";
-            assertEquals(FormValidation.Kind.OK, descriptor.doCheckGroovyScript(script).kind);
-        }
-        
-        // errors for null
-        {
-            String script = null;
-            assertEquals(FormValidation.Kind.ERROR, descriptor.doCheckGroovyScript(script).kind);
-        }
-        
-        // error for blank
-        {
-            String script = "  ";
-            assertEquals(FormValidation.Kind.ERROR, descriptor.doCheckGroovyScript(script).kind);
-        }
-        
-        // error for syntax error
-        {
-            String script = "{";
-            assertEquals(FormValidation.Kind.ERROR, descriptor.doCheckGroovyScript(script).kind);
-        }
+        j.assertEqualDataBoundBeans(
+                prop,
+                project.getProperty(GroovyLabelAssignmentProperty.class)
+        );
     }
     
     @Test
-    public void testConfiguration() throws Exception
+    public void testConfiguration2() throws Exception
     {
-        WebClient wc = j.createWebClient();
         FreeStyleProject project = j.createFreeStyleProject();
-        String name = project.getName();
-        String groovyScript = "return null;";
+        GroovyLabelAssignmentProperty prop = new GroovyLabelAssignmentProperty(new SecureGroovyScript(
+                "return null;",
+                false,
+                Collections.<ClasspathEntry>emptyList()
+        ));
+        project.addProperty(prop);
+        j.configRoundtrip(project);
         
-        {
-            HtmlPage page = wc.getPage(project, "configure");
-            HtmlForm form = page.getFormByName("config");
-            HtmlCheckBoxInput checkbox = form.getInputByName(GroovyLabelAssignmentProperty.PROPERTYNAME);
-            page = (HtmlPage)checkbox.setChecked(true);
-            
-            form = page.getFormByName("config");
-            HtmlTextArea textarea = form.getTextAreaByName("_.groovyScript");
-            textarea.setText(groovyScript);
-            j.submit(form);
-        }
+        j.assertEqualDataBoundBeans(
+                prop,
+                project.getProperty(GroovyLabelAssignmentProperty.class)
+        );
+    }
+    
+    @Test
+    public void testNoConfiguration() throws Exception
+    {
+        FreeStyleProject project = j.createFreeStyleProject();
+        j.configRoundtrip(project);
         
-        project = (FreeStyleProject)Jenkins.getInstance().getItem(name);
-        GroovyLabelAssignmentProperty prop = project.getProperty(GroovyLabelAssignmentProperty.class);
-        assertNotNull(prop);
-        assertEquals(groovyScript, prop.getGroovyScript());
+        assertNull(project.getProperty(GroovyLabelAssignmentProperty.class));
     }
     
     @Test
     public void testCurrentJobWithFreeStyleProject() throws Exception {
+        ScriptApproval.get().approveSignature("staticMethod org.codehaus.groovy.runtime.DefaultGroovyMethods find java.util.Collection groovy.lang.Closure");
+        ScriptApproval.get().approveSignature("field hudson.model.AbstractItem name");
+        
         // This allows a build decides which slave to run on with its project name.
         // not applicable for slave3.
-        String script = "['test1', 'test2'].find { currentJob.name.contains(it) }";
+        String script = "['test1', 'test2'].find { it -> currentJob.name.contains(it) }";
         
         // project names and expected nodes map
         Map<String, Node> projectAndNodeMap = new HashMap<String, Node>();
@@ -578,10 +559,13 @@ public class GroovyLabelAssignmentPropertyJenkinsTest
     
     @Test
     public void testCurrentJobWithMatrixProject() throws Exception {
+        ScriptApproval.get().approveSignature("staticMethod org.codehaus.groovy.runtime.DefaultGroovyMethods find java.util.Collection groovy.lang.Closure");
+        ScriptApproval.get().approveSignature("field hudson.model.AbstractItem name");
+        
         // As MatrixRun is passed as currentJob for matrix childs and the name of MatrixRun contains the axis value, 
         // this allows child builds decide which slave to run on with threir axis value.
         // not applicable for slave3.
-        String script = "['test1', 'test2'].find { currentJob.name.contains(it) }";
+        String script = "['test1', 'test2'].find { it -> currentJob.name.contains(it) }";
         
         MatrixProject p = j.createMatrixProject();
         p.setAxes(new AxisList(new Axis("axisParam", "run-on-test1", "run-on-test2", "run-on-test3")));
@@ -642,5 +626,41 @@ public class GroovyLabelAssignmentPropertyJenkinsTest
         
         j.createOnlineSlave("test1");
         assertNotNull(b.get(500, TimeUnit.MILLISECONDS));
+    }
+    
+    @Test
+    @LocalData
+    public void testMigrationFrom1_1_1() throws Exception
+    {
+        FreeStyleProject p = j.jenkins.getItemByFullName("test", FreeStyleProject.class);
+        GroovyLabelAssignmentProperty prop = p.getProperty(GroovyLabelAssignmentProperty.class);
+        
+        assertNotNull(prop);
+        assertEquals(
+                StringUtils.join(Arrays.asList(
+                        "if(RunOnTest1 == \"true\")",
+                        "{",
+                        "    return \"test1\";",
+                        "}",
+                        "return \"master\";"
+                ), '\n'),
+                prop.getSecureGroovyScript().getScript()
+        );
+        assertTrue(prop.getSecureGroovyScript().isSandbox());
+        
+        assertBuiltOn(
+                j.jenkins,
+                scheduleBuildWithParameters(
+                        p,
+                        new BooleanParameterValue("RunOnTest1", false)
+                )
+        );
+        assertBuiltOn(
+                slave1,
+                scheduleBuildWithParameters(
+                        p,
+                        new BooleanParameterValue("RunOnTest1", true)
+                )
+        );
     }
 }
