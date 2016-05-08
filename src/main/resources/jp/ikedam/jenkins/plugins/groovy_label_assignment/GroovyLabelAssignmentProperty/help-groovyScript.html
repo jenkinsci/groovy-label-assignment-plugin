@@ -56,6 +56,6 @@ switch(binding.getVariables().get("target"))
 
 Example3-----------------------------------------------------------------------------
 // Decides the node to run on for its job name.
-["win", "linux"].find(currentJob.name.contains(it))
+["win", "linux"].find { it -> currentJob.name.contains(it) }
 </code>
 </div>

@@ -31,8 +31,6 @@ import jenkins.model.Jenkins;
 import hudson.Functions;
 import hudson.Util;
 import hudson.PluginWrapper;
-import hudson.matrix.MatrixProject;
-import hudson.model.FreeStyleProject;
 import hudson.model.Node;
 import hudson.model.labels.LabelAtom;
 import hudson.slaves.DumbSlave;
@@ -40,7 +38,6 @@ import hudson.util.IOUtils;
 
 import org.junit.Before;
 import org.jvnet.hudson.test.JenkinsRule;
-import org.jvnet.hudson.test.TestEnvironment;
 import org.jvnet.hudson.test.TestPluginManager;
 
 /**
@@ -104,26 +101,13 @@ public class GroovyLabelAssignmentJenkinsRule extends JenkinsRule
             e.printStackTrace();
         }
         super.after();
-        // Jenkins < 1.482, JenkinsRule leaves temporary directories.
-        if(TestEnvironment.get() != null)
-        {
-            try
-            {
-                TestEnvironment.get().dispose();
-            }
-            catch(Exception e)
-            {
-                e.printStackTrace();
-            }
-        }
     }
     
     private void removeSlaves() throws ExecutionException, InterruptedException, IOException
     {
-        // In Jenkins < 1.441, log files of slave nodes are not closed here,
+        // In Jenkins < 1.520, log files of slave nodes are not closed here,
         // so tearDown fails in Windows.
         // Close files to avoid this failure.
-        // NOTE: This seems happen even with 1.466...
         if(Functions.isWindows()) {
             for(Node node: Jenkins.getInstance().getNodes()) {
                 if(!(node instanceof DumbSlave))
@@ -137,27 +121,6 @@ public class GroovyLabelAssignmentJenkinsRule extends JenkinsRule
                 IOUtils.closeQuietly(out);
             }
         }
-    }
-
-    @Override
-    public FreeStyleProject createFreeStyleProject() throws IOException
-    {
-        // createFreeStyleProject is protected with Jenkins < 1.479
-        return super.createFreeStyleProject();
-    }
-    
-    @Override
-    public FreeStyleProject createFreeStyleProject(String name) throws IOException
-    {
-        // createFreeStyleProject is protected with Jenkins < 1.479
-        return super.createFreeStyleProject(name);
-    }
-    
-    @Override
-    public MatrixProject createMatrixProject() throws IOException
-    {
-        // createMatrixProject is protected with Jenkins < 1.479
-        return super.createMatrixProject();
     }
     
     public DumbSlave createOnlineSlave(String labelString) throws Exception
