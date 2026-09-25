@@ -23,106 +23,16 @@
  */
 package jp.ikedam.jenkins.plugins.groovy_label_assignment;
 
-import java.io.IOException;
-import java.io.OutputStream;
-import java.util.concurrent.ExecutionException;
-
-import jenkins.model.Jenkins;
-import hudson.Functions;
-import hudson.Util;
-import hudson.PluginWrapper;
-import hudson.model.Node;
 import hudson.model.labels.LabelAtom;
 import hudson.slaves.DumbSlave;
-import hudson.util.IOUtils;
 
-import org.junit.Before;
 import org.jvnet.hudson.test.JenkinsRule;
-import org.jvnet.hudson.test.TestPluginManager;
 
 /**
  * JenkinsRule used for testing GroovyLabelAssignment
- * 
- * mainly fix for Windows.
- * SEE https://wiki.jenkins-ci.org/display/JENKINS/Unit+Test+on+Windows for details.
  */
 public class GroovyLabelAssignmentJenkinsRule extends JenkinsRule
 {
-    private static Thread deleteThread = null;
-    
-    static {
-        registerCleanup();
-    }
-    
-    @Before
-    protected void before() throws Throwable {
-        super.before();
-    }
-    
-    // TestPluginManager leaves jar files open,
-    // and fails to delete temporary directories in Windows.
-    public static synchronized void registerCleanup() {
-        if(deleteThread != null) {
-            return;
-        }
-        deleteThread = new Thread("HOTFIX: cleanup " + TestPluginManager.INSTANCE.rootDir) {
-            @Override public void run() {
-                if(TestPluginManager.INSTANCE != null
-                        && TestPluginManager.INSTANCE.rootDir != null
-                        && TestPluginManager.INSTANCE.rootDir.exists()) {
-                    // Work as PluginManager#stop
-                    for(PluginWrapper p: TestPluginManager.INSTANCE.getPlugins())
-                    {
-                        p.stop();
-                        p.releaseClassLoader();
-                    }
-                    TestPluginManager.INSTANCE.getPlugins().clear();
-                    System.gc();
-                    try {
-                        Util.deleteRecursive(TestPluginManager.INSTANCE.rootDir);
-                    } catch (IOException x) {
-                        x.printStackTrace();
-                    }
-                }
-            }
-        };
-        Runtime.getRuntime().addShutdownHook(deleteThread);
-    }
-    
-    @Override
-    protected void after()
-    {
-        try
-        {
-            removeSlaves();
-        }
-        catch(Exception e)
-        {
-            e.printStackTrace();
-        }
-        super.after();
-    }
-    
-    private void removeSlaves() throws ExecutionException, InterruptedException, IOException
-    {
-        // In Jenkins < 1.520, log files of slave nodes are not closed here,
-        // so tearDown fails in Windows.
-        // Close files to avoid this failure.
-        if(Functions.isWindows()) {
-            for(Node node: Jenkins.getInstance().getNodes()) {
-                if(!(node instanceof DumbSlave))
-                {
-                    continue;
-                }
-                DumbSlave slave = (DumbSlave)node;
-                slave.getComputer().cliDisconnect("tearDown");
-                OutputStream out = slave.getComputer().openLogFile();
-                Jenkins.getInstance().removeNode(slave);
-                IOUtils.closeQuietly(out);
-            }
-        }
-    }
-    
     public DumbSlave createOnlineSlave(String labelString) throws Exception
     {
         // QuickHack to set multiple labels.

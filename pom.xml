@@ -1,104 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>org.jenkins-ci.plugins</groupId>
     <artifactId>plugin</artifactId>
-    <version>2.9</version>
+    <version>6.2236.v12dd4c483242</version>
+    <relativePath />
   </parent>
-  
+
   <groupId>jp.ikedam.jenkins.plugins</groupId>
   <artifactId>groovy-label-assignment</artifactId>
   <version>1.2.1-SNAPSHOT</version>
   <packaging>hpi</packaging>
   <name>Groovy Label Assignment plugin</name>
   <description>Jenkins plugin to set label dynamically with groovy scripts.</description>
-  
-  <url>http://wiki.jenkins-ci.org/display/JENKINS/Groovy+Label+Assignment+plugin</url>
-  
-  <scm>
-    <connection>scm:git:git://github.com/jenkinsci/${project.artifactId}-plugin.git</connection>
-    <developerConnection>scm:git:git@github.com:jenkinsci/${project.artifactId}-plugin.git</developerConnection>
-    <url>https://github.com/jenkinsci/${project.artifactId}-plugin</url>
-  </scm>
-  
+  <url>https://github.com/jenkinsci/${project.artifactId}-plugin</url>
+
+  <licenses>
+    <license>
+      <name>The MIT license</name>
+      <url>https://opensource.org/licenses/MIT</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+
   <developers>
     <developer>
       <id>ikedam</id>
       <name>IKEDA Yasuyuki</name>
     </developer>
+    <developer>
+      <id>kitos9112</id>
+      <name>Marcos Soutullo</name>
+    </developer>
   </developers>
-  
-  <licenses>
-    <license>
-      <name>The MIT license</name>
-      <url>http://www.opensource.org/licenses/mit-license.php</url>
-      <distribution>repo</distribution>
-    </license>
-  </licenses>
-  
+
+  <scm>
+    <connection>scm:git:https://github.com/${gitHubRepo}.git</connection>
+    <developerConnection>scm:git:git@github.com:${gitHubRepo}.git</developerConnection>
+    <tag>${scmTag}</tag>
+    <url>https://github.com/${gitHubRepo}</url>
+  </scm>
+
   <properties>
-    <jenkins.version>1.509</jenkins.version>
-    <jenkins-test-harness.version>1.509</jenkins-test-harness.version>
-    <java.level>5</java.level>
+    <!-- https://www.jenkins.io/doc/developer/plugin-development/choosing-jenkins-baseline/ -->
+    <jenkins.baseline>2.555</jenkins.baseline>
+    <jenkins.version>${jenkins.baseline}.3</jenkins.version>
+    <gitHubRepo>jenkinsci/${project.artifactId}-plugin</gitHubRepo>
   </properties>
-  
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>io.jenkins.tools.bom</groupId>
+        <artifactId>bom-${jenkins.baseline}.x</artifactId>
+        <version>7046.v43536164769c</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
   <dependencies>
     <dependency>
       <groupId>org.jenkins-ci.plugins</groupId>
+      <artifactId>matrix-project</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.jenkins-ci.plugins</groupId>
       <artifactId>script-security</artifactId>
-      <version>1.16</version>
+    </dependency>
+    <dependency>
+      <groupId>org.kohsuke</groupId>
+      <artifactId>access-modifier-suppressions</artifactId>
+      <version>${access-modifier-checker.version}</version>
+      <!-- Not needed at runtime -->
+      <scope>provided</scope>
+      <exclusions>
+        <exclusion>
+          <!-- Upper bounds and comes from core -->
+          <groupId>org.kohsuke</groupId>
+          <artifactId>access-modifier-annotation</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
   </dependencies>
-  
+
   <build>
     <plugins>
       <plugin>
         <groupId>org.jenkins-ci.tools</groupId>
         <artifactId>maven-hpi-plugin</artifactId>
-        <extensions>true</extensions>
         <configuration>
           <compatibleSinceVersion>1.2.0</compatibleSinceVersion>
         </configuration>
       </plugin>
-      <plugin>
-        <artifactId>maven-surefire-plugin</artifactId>
-        <configuration>
-          <!-- jenkins-test-harness < 1.545 doesn't support concurrent tests. -->
-          <forkCount>1</forkCount>
-        </configuration>
-      </plugin>
-      <plugin>
-        <artifactId>maven-enforcer-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>display-info</id>
-            <configuration>
-              <rules>
-                <bannedDependencies>
-                  <excludes>
-                    <!-- <exclude>org.sonatype.sisu:sisu-guice</exclude> -->
-                    <exclude>log4j:log4j:*:jar:compile</exclude>
-                    <exclude>log4j:log4j:*:jar:runtime</exclude>
-                    <exclude>commons-logging:commons-logging:*:jar:compile</exclude>
-                    <exclude>commons-logging:commons-logging:*:jar:runtime</exclude>
-                  </excludes>
-                </bannedDependencies>
-                <enforceBytecodeVersion>
-                  <excludes combine.children="append">
-                    <!-- dependencies via jenkins-core-1.509 -->
-                    <exclude>org.mindrot:jbcrypt</exclude>
-                    <exclude>org.kohsuke:asm3</exclude>
-                  </excludes>
-                </enforceBytecodeVersion>
-              </rules>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
     </plugins>
   </build>
-  
-  <!-- get every artifact through repo.jenkins-ci.org, which proxies all the artifacts that we need -->
+
   <repositories>
     <repository>
       <id>repo.jenkins-ci.org</id>

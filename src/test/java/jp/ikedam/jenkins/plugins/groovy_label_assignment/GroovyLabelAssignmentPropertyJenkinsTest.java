@@ -65,15 +65,10 @@ import org.jenkinsci.plugins.scriptsecurity.scripts.ScriptApproval;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.jvnet.hudson.test.Bug;
+import org.jvnet.hudson.test.Issue;
 import org.jvnet.hudson.test.JenkinsRule.WebClient;
 import org.jvnet.hudson.test.CaptureEnvironmentBuilder;
 import org.jvnet.hudson.test.recipes.LocalData;
-
-import com.gargoylesoftware.htmlunit.html.HtmlCheckBoxInput;
-import com.gargoylesoftware.htmlunit.html.HtmlForm;
-import com.gargoylesoftware.htmlunit.html.HtmlPage;
-import com.gargoylesoftware.htmlunit.html.HtmlTextArea;
 
 import static org.junit.Assert.*;
 
@@ -214,7 +209,7 @@ public class GroovyLabelAssignmentPropertyJenkinsTest
         
         // Specify patterns static
         {
-            project.setAssignedLabel(LabelExpression.parseExpression("master"));
+            project.setAssignedLabel(j.jenkins.getSelfLabel());
             
             Map<String, Node> slaveMap = new HashMap<String, Node>();
             slaveMap.put(slave1.getNodeName(), slave1);
@@ -310,7 +305,7 @@ public class GroovyLabelAssignmentPropertyJenkinsTest
         String paramName = "PARAM1";
         String defaultParamValue = "VALUE";
         
-        MatrixProject project = j.createMatrixProject();
+        MatrixProject project = j.createProject(MatrixProject.class);
         AxisList axes = new AxisList();
         axes.add(new TextAxis("axisParam", "axis1","axis2"));
         axes.add(new LabelAxis("axisLabel", Arrays.asList("test1", "test2")));
@@ -361,7 +356,7 @@ public class GroovyLabelAssignmentPropertyJenkinsTest
         String paramName = "PARAM1";
         String defaultParamValue = "VALUE";
         
-        MatrixProject project = j.createMatrixProject();
+        MatrixProject project = j.createProject(MatrixProject.class);
         AxisList axes = new AxisList();
         axes.add(new TextAxis("axisParam", "axis1","axis2"));
         axes.add(new LabelAxis("axisLabel", Arrays.asList("test1", "test2")));
@@ -494,6 +489,8 @@ public class GroovyLabelAssignmentPropertyJenkinsTest
         project.addProperty(prop);
         j.configRoundtrip(project);
         
+        // The configuration form submits the previous script as oldScript.
+        prop.getSecureGroovyScript().setOldScript(prop.getSecureGroovyScript().getScript());
         j.assertEqualDataBoundBeans(
                 prop,
                 project.getProperty(GroovyLabelAssignmentProperty.class)
@@ -512,6 +509,8 @@ public class GroovyLabelAssignmentPropertyJenkinsTest
         project.addProperty(prop);
         j.configRoundtrip(project);
         
+        // The configuration form submits the previous script as oldScript.
+        prop.getSecureGroovyScript().setOldScript(prop.getSecureGroovyScript().getScript());
         j.assertEqualDataBoundBeans(
                 prop,
                 project.getProperty(GroovyLabelAssignmentProperty.class)
@@ -547,7 +546,7 @@ public class GroovyLabelAssignmentPropertyJenkinsTest
         {
             FreeStyleProject projectToTest = j.createFreeStyleProject(entry.getKey());
             projectToTest.addProperty(new GroovyLabelAssignmentProperty(script));
-            projectToTest.setAssignedLabel(LabelExpression.parseExpression("master")); // overridden with GroovyLabelAssignmentProperty
+            projectToTest.setAssignedLabel(j.jenkins.getSelfLabel()); // overridden with GroovyLabelAssignmentProperty
             
             for(int i = 0; i < BUILD_REPEAT; ++i)
             {
@@ -567,10 +566,10 @@ public class GroovyLabelAssignmentPropertyJenkinsTest
         // not applicable for slave3.
         String script = "['test1', 'test2'].find { it -> currentJob.name.contains(it) }";
         
-        MatrixProject p = j.createMatrixProject();
+        MatrixProject p = j.createProject(MatrixProject.class);
         p.setAxes(new AxisList(new Axis("axisParam", "run-on-test1", "run-on-test2", "run-on-test3")));
         p.addProperty(new GroovyLabelAssignmentProperty(script));
-        p.setAssignedLabel(LabelExpression.parseExpression("master")); // overridden with GroovyLabelAssignmentProperty
+        p.setAssignedLabel(j.jenkins.getSelfLabel()); // overridden with GroovyLabelAssignmentProperty
         
         // axis names and expected nodes map
         Map<String, Node> axisValueAndNodeMap = new HashMap<String, Node>();
@@ -590,7 +589,7 @@ public class GroovyLabelAssignmentPropertyJenkinsTest
         }
     }
     
-    @Bug(30135)
+    @Issue("JENKINS-30135")
     @Test
     public void testLabelIsOnceRemoved() throws Exception
     {
