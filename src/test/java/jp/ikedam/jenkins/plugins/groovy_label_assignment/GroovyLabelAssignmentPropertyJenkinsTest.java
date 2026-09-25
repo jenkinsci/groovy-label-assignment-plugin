@@ -118,7 +118,7 @@ public class GroovyLabelAssignmentPropertyJenkinsTest
     @Before
     public void setupQuietPeriod() throws IOException
     {
-        Jenkins.getInstance().setQuietPeriod(new Integer(1));
+        Jenkins.getInstance().setQuietPeriod(0);
     }
     
     @Test
