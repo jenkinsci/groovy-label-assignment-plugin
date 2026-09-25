@@ -39,6 +39,7 @@ import org.kohsuke.accmod.restrictions.suppressions.SuppressRestrictedWarnings;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.StaplerRequest2;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import groovy.lang.Binding;
 import hudson.EnvVars;
 import hudson.Extension;
@@ -202,6 +203,7 @@ public class GroovyLabelAssignmentProperty extends JobProperty<AbstractProject<?
      */
     // No build exists at queue time, and buildEnvironment(Run, EnvVars) skips legacy actions without one.
     @SuppressRestrictedWarnings(ProtectedExternally.class)
+    @SuppressFBWarnings(value = "DCN_NULLPOINTER_EXCEPTION", justification = "Actions get a null build at queue time; those that dereference it are skipped.")
     protected Binding createBinding(AbstractProject<?, ?> project, List<Action> actions)
     {
         EnvVars env = new EnvVars();
