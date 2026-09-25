@@ -32,7 +32,6 @@ import java.util.logging.Logger;
 import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
 
-import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.plugins.scriptsecurity.sandbox.groovy.SecureGroovyScript;
 import org.jenkinsci.plugins.scriptsecurity.scripts.ClasspathEntry;
 import org.kohsuke.accmod.restrictions.ProtectedExternally;
@@ -172,7 +171,7 @@ public class GroovyLabelAssignmentProperty extends JobProperty<AbstractProject<?
         }
         
         String labelString = (out != null)?out.toString():null;
-        if(StringUtils.isBlank(labelString))
+        if(labelString == null || labelString.isBlank())
         {
             LOGGER.info(String.format("%s: label is not modified.", project.getName()));
             return true;

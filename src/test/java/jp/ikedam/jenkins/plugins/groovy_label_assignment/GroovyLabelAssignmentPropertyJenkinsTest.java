@@ -58,7 +58,6 @@ import hudson.model.StringParameterValue;
 import hudson.model.labels.LabelExpression;
 import hudson.slaves.DumbSlave;
 
-import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.plugins.scriptsecurity.sandbox.groovy.SecureGroovyScript;
 import org.jenkinsci.plugins.scriptsecurity.scripts.ClasspathEntry;
 import org.jenkinsci.plugins.scriptsecurity.scripts.ScriptApproval;
@@ -370,7 +369,7 @@ public class GroovyLabelAssignmentPropertyJenkinsTest
         
         {
             project.removeProperty(GroovyLabelAssignmentProperty.class);
-            project.addProperty(new GroovyLabelAssignmentProperty(StringUtils.join(Arrays.asList(
+            project.addProperty(new GroovyLabelAssignmentProperty(String.join("\n", Arrays.asList(
                     "switch(binding.getVariables().get(\"axisParam\")){",
                     "case \"axis1\":",
                     "    return \"common1&&common2\";",
@@ -378,7 +377,7 @@ public class GroovyLabelAssignmentPropertyJenkinsTest
                     "    return \"test1\";",
                     "}",
                     "return null;"
-            ), "\n")));
+            ))));
             for(int i = 0; i < BUILD_REPEAT; ++i)
             {
                 String paramValue = "AnotherValue";
@@ -636,13 +635,13 @@ public class GroovyLabelAssignmentPropertyJenkinsTest
         
         assertNotNull(prop);
         assertEquals(
-                StringUtils.join(Arrays.asList(
+                String.join("\n", Arrays.asList(
                         "if(RunOnTest1 == \"true\")",
                         "{",
                         "    return \"test1\";",
                         "}",
                         "return \"master\";"
-                ), '\n'),
+                )),
                 prop.getSecureGroovyScript().getScript()
         );
         assertTrue(prop.getSecureGroovyScript().isSandbox());
