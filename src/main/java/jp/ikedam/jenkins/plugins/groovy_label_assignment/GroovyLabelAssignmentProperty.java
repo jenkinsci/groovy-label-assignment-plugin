@@ -32,13 +32,12 @@ import java.util.logging.Logger;
 import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
 
-import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.plugins.scriptsecurity.sandbox.groovy.SecureGroovyScript;
 import org.jenkinsci.plugins.scriptsecurity.scripts.ClasspathEntry;
+import org.kohsuke.accmod.restrictions.ProtectedExternally;
+import org.kohsuke.accmod.restrictions.suppressions.SuppressRestrictedWarnings;
 import org.kohsuke.stapler.DataBoundConstructor;
-import org.kohsuke.stapler.StaplerRequest;
-
-import antlr.ANTLRException;
+import org.kohsuke.stapler.StaplerRequest2;
 
 import groovy.lang.Binding;
 import hudson.EnvVars;
@@ -50,6 +49,7 @@ import hudson.matrix.MatrixConfiguration;
 import hudson.matrix.MatrixProject;
 import hudson.model.AbstractProject;
 import hudson.model.Action;
+import hudson.model.Descriptor;
 import hudson.model.EnvironmentContributingAction;
 import hudson.model.JobProperty;
 import hudson.model.JobPropertyDescriptor;
@@ -106,7 +106,20 @@ public class GroovyLabelAssignmentProperty extends JobProperty<AbstractProject<?
     
     public GroovyLabelAssignmentProperty(String groovyScript)
     {
-        this(new SecureGroovyScript(groovyScript, true, Collections.<ClasspathEntry>emptyList()));
+        this(createSandboxedScript(groovyScript));
+    }
+    
+    private static SecureGroovyScript createSandboxedScript(String groovyScript)
+    {
+        try
+        {
+            return new SecureGroovyScript(groovyScript, true, Collections.<ClasspathEntry>emptyList());
+        }
+        catch(Descriptor.FormException e)
+        {
+            // SecureGroovyScript only rejects scripts that disable the sandbox.
+            throw new IllegalStateException(e);
+        }
     }
     
     private Object readResolve() {
@@ -156,7 +169,7 @@ public class GroovyLabelAssignmentProperty extends JobProperty<AbstractProject<?
         }
         
         String labelString = (out != null)?out.toString():null;
-        if(StringUtils.isBlank(labelString))
+        if(labelString == null || labelString.isBlank())
         {
             LOGGER.info(String.format("%s: label is not modified.", project.getName()));
             return true;
@@ -166,7 +179,7 @@ public class GroovyLabelAssignmentProperty extends JobProperty<AbstractProject<?
         {
             LabelExpression.parseExpression(labelString);
         }
-        catch(ANTLRException e)
+        catch(IllegalArgumentException e)
         {
             LOGGER.log(Level.SEVERE, String.format("%s: Invalid label string: %s", project.getName(), labelString), e);
             return false;
@@ -187,6 +200,8 @@ public class GroovyLabelAssignmentProperty extends JobProperty<AbstractProject<?
      * @param actions
      * @return
      */
+    // No build exists at queue time, and buildEnvironment(Run, EnvVars) skips legacy actions without one.
+    @SuppressRestrictedWarnings(ProtectedExternally.class)
     protected Binding createBinding(AbstractProject<?, ?> project, List<Action> actions)
     {
         EnvVars env = new EnvVars();
@@ -262,11 +277,11 @@ public class GroovyLabelAssignmentProperty extends JobProperty<AbstractProject<?
         /** 
          * Create a new instance from the form input.
          * 
-         * @see hudson.model.JobPropertyDescriptor#newInstance(org.kohsuke.stapler.StaplerRequest, net.sf.json.JSONObject)
+         * @see hudson.model.JobPropertyDescriptor#newInstance(org.kohsuke.stapler.StaplerRequest2, net.sf.json.JSONObject)
          */
         @Override
         public JobProperty<?> newInstance(
-                StaplerRequest req,
+                StaplerRequest2 req,
                 JSONObject formData)
                 throws hudson.model.Descriptor.FormException
         {
