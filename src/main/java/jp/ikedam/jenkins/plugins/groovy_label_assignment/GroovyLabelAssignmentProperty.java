@@ -37,7 +37,7 @@ import org.jenkinsci.plugins.scriptsecurity.scripts.ClasspathEntry;
 import org.kohsuke.accmod.restrictions.ProtectedExternally;
 import org.kohsuke.accmod.restrictions.suppressions.SuppressRestrictedWarnings;
 import org.kohsuke.stapler.DataBoundConstructor;
-import org.kohsuke.stapler.StaplerRequest;
+import org.kohsuke.stapler.StaplerRequest2;
 
 import groovy.lang.Binding;
 import hudson.EnvVars;
@@ -277,11 +277,11 @@ public class GroovyLabelAssignmentProperty extends JobProperty<AbstractProject<?
         /** 
          * Create a new instance from the form input.
          * 
-         * @see hudson.model.JobPropertyDescriptor#newInstance(org.kohsuke.stapler.StaplerRequest, net.sf.json.JSONObject)
+         * @see hudson.model.JobPropertyDescriptor#newInstance(org.kohsuke.stapler.StaplerRequest2, net.sf.json.JSONObject)
          */
         @Override
         public JobProperty<?> newInstance(
-                StaplerRequest req,
+                StaplerRequest2 req,
                 JSONObject formData)
                 throws hudson.model.Descriptor.FormException
         {
