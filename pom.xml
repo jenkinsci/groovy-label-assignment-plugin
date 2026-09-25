@@ -24,17 +24,6 @@
     </license>
   </licenses>
 
-  <developers>
-    <developer>
-      <id>ikedam</id>
-      <name>IKEDA Yasuyuki</name>
-    </developer>
-    <developer>
-      <id>kitos9112</id>
-      <name>Marcos Soutullo</name>
-    </developer>
-  </developers>
-
   <scm>
     <connection>scm:git:https://github.com/${gitHubRepo}.git</connection>
     <developerConnection>scm:git:git@github.com:${gitHubRepo}.git</developerConnection>
@@ -48,6 +37,11 @@
     <jenkins.baseline>2.555</jenkins.baseline>
     <jenkins.version>${jenkins.baseline}.3</jenkins.version>
     <gitHubRepo>jenkinsci/${project.artifactId}-plugin</gitHubRepo>
+    <hpi.compatibleSinceVersion>1.2.0</hpi.compatibleSinceVersion>
+    <hpi.strictBundledArtifacts>true</hpi.strictBundledArtifacts>
+    <ban-commons-lang-2.skip>false</ban-commons-lang-2.skip>
+    <ban-deprecated-stapler.skip>false</ban-deprecated-stapler.skip>
+    <banObsoleteDependencyOverrides.skip>false</banObsoleteDependencyOverrides.skip>
   </properties>
 
   <dependencyManagement>
@@ -86,18 +80,6 @@
       </exclusions>
     </dependency>
   </dependencies>
-
-  <build>
-    <plugins>
-      <plugin>
-        <groupId>org.jenkins-ci.tools</groupId>
-        <artifactId>maven-hpi-plugin</artifactId>
-        <configuration>
-          <compatibleSinceVersion>1.2.0</compatibleSinceVersion>
-        </configuration>
-      </plugin>
-    </plugins>
-  </build>
 
   <repositories>
     <repository>
