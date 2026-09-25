@@ -477,6 +477,16 @@ public class GroovyLabelAssignmentPropertyJenkinsTest
     }
     
     @Test
+    public void testInvalidLabelString() throws Exception
+    {
+        FreeStyleProject project = j.createFreeStyleProject();
+        project.setAssignedLabel(LabelExpression.parseExpression("test1"));
+        project.addProperty(new GroovyLabelAssignmentProperty("return \"test1 &&\";"));
+        
+        assertNull(project.scheduleBuild2(0));
+    }
+    
+    @Test
     public void testConfiguration1() throws Exception
     {
         FreeStyleProject project = j.createFreeStyleProject();

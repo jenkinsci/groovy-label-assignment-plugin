@@ -39,8 +39,6 @@ import org.kohsuke.accmod.restrictions.suppressions.SuppressRestrictedWarnings;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.StaplerRequest;
 
-import antlr.ANTLRException;
-
 import groovy.lang.Binding;
 import hudson.EnvVars;
 import hudson.Extension;
@@ -181,7 +179,7 @@ public class GroovyLabelAssignmentProperty extends JobProperty<AbstractProject<?
         {
             LabelExpression.parseExpression(labelString);
         }
-        catch(ANTLRException e)
+        catch(IllegalArgumentException e)
         {
             LOGGER.log(Level.SEVERE, String.format("%s: Invalid label string: %s", project.getName(), labelString), e);
             return false;
