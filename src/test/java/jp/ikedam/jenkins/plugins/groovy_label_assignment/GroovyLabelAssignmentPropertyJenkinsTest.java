@@ -633,7 +633,7 @@ public class GroovyLabelAssignmentPropertyJenkinsTest
         }
         
         j.createOnlineSlave("test1");
-        assertNotNull(b.get(500, TimeUnit.MILLISECONDS));
+        j.assertBuildStatusSuccess(b);
     }
     
     @Test
