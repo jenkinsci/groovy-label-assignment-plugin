@@ -55,31 +55,32 @@ import hudson.model.ParametersAction;
 import hudson.model.ParametersDefinitionProperty;
 import hudson.model.StringParameterDefinition;
 import hudson.model.StringParameterValue;
+import hudson.model.labels.LabelAtom;
 import hudson.model.labels.LabelExpression;
 import hudson.slaves.DumbSlave;
 
 import org.jenkinsci.plugins.scriptsecurity.sandbox.groovy.SecureGroovyScript;
 import org.jenkinsci.plugins.scriptsecurity.scripts.ClasspathEntry;
 import org.jenkinsci.plugins.scriptsecurity.scripts.ScriptApproval;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.jvnet.hudson.test.Issue;
-import org.jvnet.hudson.test.JenkinsRule.WebClient;
+import org.jvnet.hudson.test.JenkinsRule;
 import org.jvnet.hudson.test.CaptureEnvironmentBuilder;
-import org.jvnet.hudson.test.recipes.LocalData;
+import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
+import org.jvnet.hudson.test.junit.jupiter.WithLocalData;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Tests for GroovyLabelAssignmentProperty, working with Jenkins.
  */
+@WithJenkins
 public class GroovyLabelAssignmentPropertyJenkinsTest
 {
     private static final int BUILD_REPEAT = 2;
     private static final long BUILD_TIMEOUT = 5 * 1000;
-    @Rule
-    public GroovyLabelAssignmentJenkinsRule j = new GroovyLabelAssignmentJenkinsRule();
+    private JenkinsRule j;
     
     @SuppressWarnings("deprecation")
     private <P extends AbstractProject<P,R>,R extends AbstractBuild<P,R>> R scheduleBuildWithParameters(
@@ -107,18 +108,26 @@ public class GroovyLabelAssignmentPropertyJenkinsTest
     protected DumbSlave slave2;
     protected DumbSlave slave3;
     
-    @Before
-    public void setupSlaves() throws Exception
+    @BeforeEach
+    public void setUp(JenkinsRule rule) throws Exception
     {
-        slave1 = j.createOnlineSlave("test1 common1");
-        slave2 = j.createOnlineSlave("test2 common2");
-        slave3 = j.createOnlineSlave("test3 common1 common2");
+        j = rule;
+        slave1 = createOnlineSlave("test1 common1");
+        slave2 = createOnlineSlave("test2 common2");
+        slave3 = createOnlineSlave("test3 common1 common2");
+        Jenkins.getInstance().setQuietPeriod(0);
     }
     
-    @Before
-    public void setupQuietPeriod() throws IOException
+    private DumbSlave createOnlineSlave(String labelString) throws Exception
     {
-        Jenkins.getInstance().setQuietPeriod(0);
+        // QuickHack to set multiple labels.
+        return j.createOnlineSlave(new LabelAtom(labelString){
+            @Override
+            public String getExpression()
+            {
+                return name;
+            }
+        });
     }
     
     @Test
@@ -632,12 +641,12 @@ public class GroovyLabelAssignmentPropertyJenkinsTest
             j.jenkins.setNodes(nodes);
         }
         
-        j.createOnlineSlave("test1");
+        createOnlineSlave("test1");
         j.assertBuildStatusSuccess(b);
     }
     
     @Test
-    @LocalData
+    @WithLocalData
     public void testMigrationFrom1_1_1() throws Exception
     {
         FreeStyleProject p = j.jenkins.getItemByFullName("test", FreeStyleProject.class);
